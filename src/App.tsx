@@ -36,7 +36,7 @@ function App() {
           <color attach="background" args={["#404040"]} />
           <group position={[0, 0, 0]}>
             <Grid
-              position={[0, 0.01, 0]}
+              position={[0, 0.05, 0]}
               args={[10.5, 10.5]}
               cellSize={0.6}
               cellThickness={1}
