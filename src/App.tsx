@@ -4,7 +4,10 @@ import { Canvas } from "@react-three/fiber";
 function App() {
   return (
     <div className="w-full h-full">
-      <Canvas camera={{ position: [5, 5, 10], fov: 25 }}>
+      <Canvas
+        camera={{ position: [5, 5, 10], fov: 25 }}
+        gl={{ antialias: true }}
+      >
         <color attach="background" args={["#404040"]} />
         <group position={[0, 0, 0]}>
           <Grid
