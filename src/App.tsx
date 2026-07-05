@@ -104,33 +104,39 @@ function App() {
         </aside>
 
         <Canvas
-            camera={{ position: [10, 10, 15], fov: 25 }}
-            gl={{ antialias: true }}
-          >
-            <color attach="background" args={["#404040"]} />
-            <group position={[0, 0, 0]}>
-              <Grid
-                position={[0, 0.05, 0]}
-                args={[10.5, 10.5]}
-                cellSize={0.6}
-                cellThickness={1}
-                cellColor="#6f6f6f"
-                sectionSize={3.6}
-                sectionThickness={1.5}
-                sectionColor="#6f6f6f"
-                fadeDistance={1000}
-                fadeStrength={1}
-                followCamera={false}
-                infiniteGrid
+          camera={{ position: [10, 10, 15], fov: 25 }}
+          gl={{ antialias: true }}
+        >
+          <color attach="background" args={["#404040"]} />
+          <group position={[0, 0, 0]}>
+            <axesHelper args={[50]} renderOrder={1000}>
+              <lineBasicMaterial
+                attach="material"
+                vertexColors
+                depthTest={true}
               />
-            </group>
-            <Suspense fallback={null}>
-              {models.map(({ id, url }) => (
-                <ModelInstance key={id} id={id} url={url} />
-              ))}
-            </Suspense>
-            <Environment preset="city" />
-            <CameraControls makeDefault dollyToCursor />
+            </axesHelper>
+            <Grid
+              args={[10.5, 10.5]}
+              cellSize={0.6}
+              cellThickness={1}
+              cellColor="rgba(111, 111, 111, 1)"
+              sectionSize={3.6}
+              sectionThickness={1}
+              sectionColor="rgba(111, 111, 111, 1)"
+              fadeDistance={1000}
+              fadeStrength={1}
+              followCamera={true}
+              infiniteGrid
+            />
+          </group>
+          <Suspense fallback={null}>
+            {models.map(({ id, url }) => (
+              <ModelInstance key={id} id={id} url={url} />
+            ))}
+          </Suspense>
+          <Environment preset="city" />
+          <CameraControls makeDefault dollyToCursor />
         </Canvas>
         <Toolbar />
       </div>
