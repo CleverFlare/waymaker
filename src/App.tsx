@@ -65,7 +65,13 @@ function ModelInstance({ id, url }: { id: string; url: string }) {
       setBoxHelper(null);
       return;
     }
-    setBoxHelper(new BoxHelper(selectedObject, 0xffff00));
+
+    const helper = new BoxHelper(selectedObject, 0xffff00);
+    helper.material.depthTest = false;
+    helper.material.depthWrite = false;
+    helper.material.transparent = true;
+    helper.renderOrder = 1;
+    setBoxHelper(helper);
     return () => setBoxHelper(null);
   }, [selectedObject]);
 
