@@ -7,6 +7,7 @@ import { ImportButton } from "@/components/ImportButton";
 import { SceneGraph } from "@/components/SceneGraph";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useSceneStore, type SceneNode } from "@/store/sceneStore";
+import { NetworkIcon } from "lucide-react";
 
 interface SceneModel {
   id: string;
@@ -102,7 +103,10 @@ function App() {
       <div className="relative w-full h-full">
         <aside className="absolute left-4 top-4 bottom-4 z-10 w-60 flex flex-col rounded-xl border border-border bg-background/80 backdrop-blur-sm shadow-lg overflow-hidden">
           <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border shrink-0">
-            <span className="text-sm font-medium text-foreground">Scene</span>
+            <span className="text-sm font-medium text-foreground">
+              <NetworkIcon className="inline-block text-muted-foreground pointer-events-none size-3.5 shrink-0 me-2" />
+              Scene
+            </span>
             <ImportButton onImport={handleImport} />
           </div>
           <div className="flex-1 overflow-y-auto">
