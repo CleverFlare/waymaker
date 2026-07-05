@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { CameraControls, Environment, Grid, useGLTF } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
 import { Toolbar } from "@/components/Toolbar";
@@ -7,7 +7,7 @@ import { SceneGraph } from "@/components/SceneGraph";
 import { PropertiesPanel } from "@/components/PropertiesPanel";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useSceneStore } from "@/store/sceneStore";
-import { flattenScene, findByUuid, SCENE_ROOT_ID } from "@/lib/scene";
+import { flattenScene, SCENE_ROOT_ID } from "@/lib/scene";
 import { useDragGuard } from "@/hooks/useDragGuard";
 import { useBoxHelper } from "@/hooks/useBoxHelper";
 import { NetworkIcon } from "lucide-react";
@@ -30,13 +30,51 @@ function SceneRegistrar() {
   return null;
 }
 
+function SelectionManager() {
+  const { scene, camera, raycaster, gl } = useThree();
+  const selectNode = useSceneStore((s) => s.selectNode);
+  const selectedUuid = useSceneStore((s) => s.selectedUuid);
+  const getObject = useSceneStore((s) => s.getObject);
+  const nodes = useSceneStore((s) => s.nodes);
+  const { onPointerDown, wasDrag } = useDragGuard(5);
+
+  const nodesRef = useRef(nodes);
+  nodesRef.current = nodes;
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+
+    const handleClick = (e: MouseEvent) => {
+      if (wasDrag(e)) return;
+      const rect = canvas.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera({ x, y }, camera);
+      const intersects = raycaster.intersectObjects(scene.children, true);
+      const hit = intersects.find((i) => nodesRef.current[i.object.uuid]);
+      selectNode(hit ? hit.object.uuid : null);
+    };
+
+    canvas.addEventListener("pointerdown", onPointerDown);
+    canvas.addEventListener("click", handleClick);
+    return () => {
+      canvas.removeEventListener("pointerdown", onPointerDown);
+      canvas.removeEventListener("click", handleClick);
+    };
+  }, [scene, camera, raycaster, gl, onPointerDown, wasDrag, selectNode]);
+
+  const selectedObject = selectedUuid ? getObject(selectedUuid) : null;
+  const boxHelper = useBoxHelper(selectedObject);
+
+  return boxHelper ? <primitive object={boxHelper} /> : null;
+}
+
 function ModelInstance({ id, url }: { id: string; url: string }) {
   const { scene } = useGLTF(url);
   const addModel = useSceneStore((s) => s.addModel);
   const removeModel = useSceneStore((s) => s.removeModel);
   const registerObject = useSceneStore((s) => s.registerObject);
   const unregisterObject = useSceneStore((s) => s.unregisterObject);
-  const selectedUuid = useSceneStore((s) => s.selectedUuid);
 
   useEffect(() => {
     const { rootUuid, nodes } = flattenScene(scene);
@@ -49,25 +87,11 @@ function ModelInstance({ id, url }: { id: string; url: string }) {
     };
   }, [scene, id]);
 
-  const selectedObject = useMemo(
-    () => (selectedUuid ? findByUuid(scene, selectedUuid) : null),
-    [scene, selectedUuid],
-  );
-
-  const boxHelper = useBoxHelper(selectedObject);
-
-  return (
-    <>
-      <primitive object={scene} position={[0, 0, 0]} />
-      {boxHelper && <primitive object={boxHelper} />}
-    </>
-  );
+  return <primitive object={scene} position={[0, 0, 0]} />;
 }
 
 function App() {
   const [models, setModels] = useState<SceneModel[]>([]);
-  const selectNode = useSceneStore((s) => s.selectNode);
-  const { onPointerDown, wasDrag } = useDragGuard(5);
 
   const handleImport = useCallback((files: FileList) => {
     const incoming = Array.from(files).map((file) => ({
@@ -79,10 +103,7 @@ function App() {
 
   return (
     <TooltipProvider>
-      <div
-        className="relative w-full h-full"
-        onPointerDown={onPointerDown}
-      >
+      <div className="relative w-full h-full">
         <aside className="absolute left-4 top-4 bottom-4 z-10 w-60 flex flex-col rounded-xl border border-border bg-background/80 backdrop-blur-sm shadow-lg overflow-hidden">
           <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border shrink-0">
             <span className="text-sm font-medium text-foreground">
@@ -99,12 +120,9 @@ function App() {
         <Canvas
           camera={{ position: [10, 10, 15], fov: 25 }}
           gl={{ antialias: true }}
-          onPointerMissed={(e) => {
-            if (wasDrag(e)) return;
-            selectNode(null);
-          }}
         >
           <SceneRegistrar />
+          <SelectionManager />
           <color attach="background" args={["#404040"]} />
           <group position={[0, 0, 0]}>
             <axesHelper args={[50]} renderOrder={1000}>
@@ -128,19 +146,11 @@ function App() {
               infiniteGrid
             />
           </group>
-          <group
-            onClick={(e) => {
-              if (wasDrag(e)) return;
-              e.stopPropagation();
-              selectNode(e.object.uuid);
-            }}
-          >
-            <Suspense fallback={null}>
-              {models.map(({ id, url }) => (
-                <ModelInstance key={id} id={id} url={url} />
-              ))}
-            </Suspense>
-          </group>
+          <Suspense fallback={null}>
+            {models.map(({ id, url }) => (
+              <ModelInstance key={id} id={id} url={url} />
+            ))}
+          </Suspense>
           <Environment preset="city" />
           <CameraControls makeDefault dollyToCursor />
         </Canvas>
