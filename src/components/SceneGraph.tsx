@@ -1,9 +1,10 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { Tree, TreeItem, TreeItemLabel } from "@/components/reui/tree";
 import { hotkeysCoreFeature, syncDataLoaderFeature } from "@headless-tree/core";
 import { useTree } from "@headless-tree/react";
 import { FolderOpenIcon, FolderIcon, BoxIcon, FileIcon } from "lucide-react";
 import { useSceneStore, type SceneNode } from "@/store/sceneStore";
+import { useAutoReveal } from "@/hooks/useAutoReveal";
 
 const SCENE_ROOT_ID = "__scene__";
 const MESH_TYPES = new Set(["Mesh", "SkinnedMesh"]);
@@ -46,38 +47,7 @@ export function SceneGraph() {
     tree.rebuildTree();
   }, [modelRoots]);
 
-  useEffect(() => {
-    if (!selectedUuid) return;
-
-    // Build child→parent map
-    const parentMap: Record<string, string> = {};
-    modelRoots.forEach((id) => {
-      parentMap[id] = SCENE_ROOT_ID;
-    });
-    Object.values(nodes).forEach((node) => {
-      node.children.forEach((childId) => {
-        parentMap[childId] = node.uuid;
-      });
-    });
-
-    // Walk up from selected node, collecting ancestors
-    const ancestors: string[] = [];
-    let current: string | undefined = parentMap[selectedUuid];
-    while (current) {
-      ancestors.push(current);
-      current = parentMap[current];
-    }
-
-    ancestors.forEach((id) => tree.getItemInstance(id).expand());
-
-    // Wait for the tree to re-render with expanded ancestors before scrolling
-    requestAnimationFrame(() => {
-      tree
-        .getItemInstance(selectedUuid)
-        .getElement()
-        ?.scrollIntoView({ block: "center" });
-    });
-  }, [selectedUuid]);
+  useAutoReveal(tree, selectedUuid, nodes, modelRoots, SCENE_ROOT_ID);
 
   if (modelRoots.length === 0) {
     return (

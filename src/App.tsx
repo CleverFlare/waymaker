@@ -1,41 +1,19 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { CameraControls, Environment, Grid, useGLTF } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { BoxHelper, type Object3D } from "three";
+import { Canvas } from "@react-three/fiber";
 import { Toolbar } from "@/components/Toolbar";
 import { ImportButton } from "@/components/ImportButton";
 import { SceneGraph } from "@/components/SceneGraph";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useSceneStore, type SceneNode } from "@/store/sceneStore";
+import { useSceneStore } from "@/store/sceneStore";
+import { flattenScene, findByUuid } from "@/lib/scene";
+import { useDragGuard } from "@/hooks/useDragGuard";
+import { useBoxHelper } from "@/hooks/useBoxHelper";
 import { NetworkIcon } from "lucide-react";
 
 interface SceneModel {
   id: string;
   url: string;
-}
-
-function flattenScene(root: Object3D): {
-  rootUuid: string;
-  nodes: Record<string, SceneNode>;
-} {
-  const nodes: Record<string, SceneNode> = {};
-  let counter = 0;
-
-  function walk(obj: Object3D): string {
-    const name = obj.name.trim() || `${obj.type} #${++counter}`;
-    const validChildren = obj.children
-      .filter((c) => c.type !== "Bone")
-      .map((c) => walk(c));
-    nodes[obj.uuid] = {
-      uuid: obj.uuid,
-      name,
-      type: obj.type,
-      children: validChildren,
-    };
-    return obj.uuid;
-  }
-
-  return { rootUuid: walk(root), nodes };
 }
 
 function ModelInstance({ id, url }: { id: string; url: string }) {
@@ -50,33 +28,12 @@ function ModelInstance({ id, url }: { id: string; url: string }) {
     return () => removeModel(id);
   }, [scene, id]);
 
-  const selectedObject = useMemo(() => {
-    if (!selectedUuid) return null;
-    let found: Object3D | null = null;
-    scene.traverse((obj) => {
-      if (obj.uuid === selectedUuid) found = obj;
-    });
-    return found;
-  }, [scene, selectedUuid]);
+  const selectedObject = useMemo(
+    () => (selectedUuid ? findByUuid(scene, selectedUuid) : null),
+    [scene, selectedUuid],
+  );
 
-  const [boxHelper, setBoxHelper] = useState<BoxHelper | null>(null);
-
-  useEffect(() => {
-    if (!selectedObject) {
-      setBoxHelper(null);
-      return;
-    }
-
-    const helper = new BoxHelper(selectedObject, 0xffff00);
-    helper.material.depthTest = false;
-    helper.material.depthWrite = false;
-    helper.material.transparent = true;
-    helper.renderOrder = 1;
-    setBoxHelper(helper);
-    return () => setBoxHelper(null);
-  }, [selectedObject]);
-
-  useFrame(() => boxHelper?.update());
+  const boxHelper = useBoxHelper(selectedObject);
 
   return (
     <>
@@ -89,6 +46,7 @@ function ModelInstance({ id, url }: { id: string; url: string }) {
 function App() {
   const [models, setModels] = useState<SceneModel[]>([]);
   const selectNode = useSceneStore((s) => s.selectNode);
+  const { onPointerDown, wasDrag } = useDragGuard(5);
 
   const handleImport = useCallback((files: FileList) => {
     const incoming = Array.from(files).map((file) => ({
@@ -100,7 +58,10 @@ function App() {
 
   return (
     <TooltipProvider>
-      <div className="relative w-full h-full">
+      <div
+        className="relative w-full h-full"
+        onPointerDown={onPointerDown}
+      >
         <aside className="absolute left-4 top-4 bottom-4 z-10 w-60 flex flex-col rounded-xl border border-border bg-background/80 backdrop-blur-sm shadow-lg overflow-hidden">
           <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border shrink-0">
             <span className="text-sm font-medium text-foreground">
@@ -117,7 +78,10 @@ function App() {
         <Canvas
           camera={{ position: [10, 10, 15], fov: 25 }}
           gl={{ antialias: true }}
-          onPointerMissed={() => selectNode(null)}
+          onPointerMissed={(e) => {
+            if (wasDrag(e)) return;
+            selectNode(null);
+          }}
         >
           <color attach="background" args={["#404040"]} />
           <group position={[0, 0, 0]}>
@@ -144,6 +108,7 @@ function App() {
           </group>
           <group
             onClick={(e) => {
+              if (wasDrag(e)) return;
               e.stopPropagation();
               selectNode(e.object.uuid);
             }}
