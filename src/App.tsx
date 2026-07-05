@@ -13,7 +13,10 @@ interface SceneModel {
   url: string;
 }
 
-function flattenScene(root: Object3D): { rootUuid: string; nodes: Record<string, SceneNode> } {
+function flattenScene(root: Object3D): {
+  rootUuid: string;
+  nodes: Record<string, SceneNode>;
+} {
   const nodes: Record<string, SceneNode> = {};
   let counter = 0;
 
@@ -22,7 +25,12 @@ function flattenScene(root: Object3D): { rootUuid: string; nodes: Record<string,
     const validChildren = obj.children
       .filter((c) => c.type !== "Bone")
       .map((c) => walk(c));
-    nodes[obj.uuid] = { uuid: obj.uuid, name, type: obj.type, children: validChildren };
+    nodes[obj.uuid] = {
+      uuid: obj.uuid,
+      name,
+      type: obj.type,
+      children: validChildren,
+    };
     return obj.uuid;
   }
 
@@ -110,8 +118,8 @@ function App() {
                 cellColor="#6f6f6f"
                 sectionSize={3.6}
                 sectionThickness={1.5}
-                sectionColor="#9d4b4b"
-                fadeDistance={300}
+                sectionColor="#6f6f6f"
+                fadeDistance={1000}
                 fadeStrength={1}
                 followCamera={false}
                 infiniteGrid
