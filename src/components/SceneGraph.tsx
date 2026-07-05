@@ -49,7 +49,6 @@ export function SceneGraph() {
     initialState: {
       expandedItems: [SCENE_ROOT_ID, ...modelRoots],
     },
-    canDrag: (items) => items.every((item) => !modelRoots.includes(item.getId())),
     canDrop: () => true,
     onDrop: createOnDropHandler((item, newChildIds) => {
       const parentId = item.getId();
