@@ -87,6 +87,7 @@ function ModelInstance({ id, url }: { id: string; url: string }) {
 
 function App() {
   const [models, setModels] = useState<SceneModel[]>([]);
+  const selectNode = useSceneStore((s) => s.selectNode);
 
   const handleImport = useCallback((files: FileList) => {
     const incoming = Array.from(files).map((file) => ({
@@ -112,6 +113,7 @@ function App() {
         <Canvas
           camera={{ position: [10, 10, 15], fov: 25 }}
           gl={{ antialias: true }}
+          onPointerMissed={() => selectNode(null)}
         >
           <color attach="background" args={["#404040"]} />
           <group position={[0, 0, 0]}>
@@ -136,11 +138,18 @@ function App() {
               infiniteGrid
             />
           </group>
-          <Suspense fallback={null}>
-            {models.map(({ id, url }) => (
-              <ModelInstance key={id} id={id} url={url} />
-            ))}
-          </Suspense>
+          <group
+            onClick={(e) => {
+              e.stopPropagation();
+              selectNode(e.object.uuid);
+            }}
+          >
+            <Suspense fallback={null}>
+              {models.map(({ id, url }) => (
+                <ModelInstance key={id} id={id} url={url} />
+              ))}
+            </Suspense>
+          </group>
           <Environment preset="city" />
           <CameraControls makeDefault dollyToCursor />
         </Canvas>
