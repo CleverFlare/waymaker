@@ -38,6 +38,7 @@ export function SceneGraph() {
 
   const tree = useTree<TreeItemData>({
     rootItemId: SCENE_ROOT_ID,
+    indent: 16,
     getItemName: (item) => item.getItemData().name,
     isItemFolder: (item) => (item.getItemData().children?.length ?? 0) > 0,
     dataLoader: {
