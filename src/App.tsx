@@ -4,6 +4,7 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { Toolbar } from "@/components/Toolbar";
 import { ImportButton } from "@/components/ImportButton";
 import { SceneGraph } from "@/components/SceneGraph";
+import { PropertiesPanel } from "@/components/PropertiesPanel";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useSceneStore } from "@/store/sceneStore";
 import { flattenScene, findByUuid, SCENE_ROOT_ID } from "@/lib/scene";
@@ -143,6 +144,7 @@ function App() {
           <Environment preset="city" />
           <CameraControls makeDefault dollyToCursor />
         </Canvas>
+        <PropertiesPanel />
         <Toolbar />
       </div>
     </TooltipProvider>
