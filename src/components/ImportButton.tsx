@@ -1,12 +1,14 @@
 import { useRef } from "react";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface ImportButtonProps {
   onImport: (files: FileList) => void;
+  className?: string;
 }
 
-export function ImportButton({ onImport }: ImportButtonProps) {
+export function ImportButton({ onImport, className }: ImportButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -25,7 +27,7 @@ export function ImportButton({ onImport }: ImportButtonProps) {
       <Button
         variant="outline"
         size="sm"
-        className="absolute top-4 left-4 gap-2"
+        className={cn("gap-2", className)}
         onClick={() => inputRef.current?.click()}
       >
         <Upload />
