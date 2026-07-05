@@ -1,12 +1,17 @@
 import { useLayoutEffect, useRef } from "react";
-import { Tree, TreeItem, TreeItemLabel } from "@/components/reui/tree";
-import { hotkeysCoreFeature, syncDataLoaderFeature } from "@headless-tree/core";
+import { Tree, TreeItem, TreeItemLabel, TreeDragLine } from "@/components/reui/tree";
+import {
+  hotkeysCoreFeature,
+  syncDataLoaderFeature,
+  dragAndDropFeature,
+  createOnDropHandler,
+} from "@headless-tree/core";
 import { useTree } from "@headless-tree/react";
 import { FolderOpenIcon, FolderIcon, BoxIcon, FileIcon } from "lucide-react";
-import { useSceneStore, type SceneNode } from "@/store/sceneStore";
+import { useSceneStore } from "@/store/sceneStore";
 import { useAutoReveal } from "@/hooks/useAutoReveal";
+import { SCENE_ROOT_ID } from "@/lib/scene";
 
-const SCENE_ROOT_ID = "__scene__";
 const MESH_TYPES = new Set(["Mesh", "SkinnedMesh"]);
 
 interface TreeItemData {
@@ -22,11 +27,13 @@ export function SceneGraph() {
   const modelRoots = useSceneStore((s) => s.modelRoots);
   const selectNode = useSceneStore((s) => s.selectNode);
   const selectedUuid = useSceneStore((s) => s.selectedUuid);
+  const getObject = useSceneStore((s) => s.getObject);
+  const reparentNodes = useSceneStore((s) => s.reparentNodes);
 
   const treeDataRef = useRef<TreeDataMap>({});
   treeDataRef.current = {
     [SCENE_ROOT_ID]: { name: "Scene", type: "Scene", children: modelRoots },
-    ...(nodes as Record<string, SceneNode>),
+    ...nodes,
   };
 
   const tree = useTree<TreeItemData>({
@@ -37,15 +44,33 @@ export function SceneGraph() {
       getItem: (id) => treeDataRef.current[id],
       getChildren: (id) => treeDataRef.current[id]?.children ?? [],
     },
-    features: [syncDataLoaderFeature, hotkeysCoreFeature],
+    features: [syncDataLoaderFeature, hotkeysCoreFeature, dragAndDropFeature],
     initialState: {
       expandedItems: [SCENE_ROOT_ID, ...modelRoots],
     },
+    canDrag: (items) => items.every((item) => !modelRoots.includes(item.getId())),
+    canDrop: () => true,
+    onDrop: createOnDropHandler((item, newChildIds) => {
+      const parentId = item.getId();
+      const currentChildIds = treeDataRef.current[parentId]?.children ?? [];
+      const addedIds = newChildIds.filter((id) => !currentChildIds.includes(id));
+
+      reparentNodes(parentId, newChildIds);
+
+      const parentObject = getObject(parentId);
+      if (parentObject) {
+        addedIds.forEach((id) => {
+          const childObject = getObject(id);
+          if (childObject) parentObject.attach(childObject);
+        });
+      }
+    }),
   });
 
+  // Rebuild tree whenever hierarchy changes (model load/unload or reparenting)
   useLayoutEffect(() => {
     tree.rebuildTree();
-  }, [modelRoots]);
+  }, [modelRoots, nodes]);
 
   useAutoReveal(tree, selectedUuid, nodes, modelRoots, SCENE_ROOT_ID);
 
@@ -65,11 +90,9 @@ export function SceneGraph() {
         const isMesh = MESH_TYPES.has(data?.type ?? "");
 
         return (
-          <TreeItem key={item.getId()} item={item}>
+          <TreeItem key={item.getId()} item={item} {...item.getDragHandleProps()}>
             <TreeItemLabel
-              className={
-                isSelected ? "!bg-white/10 !text-accent-foreground" : ""
-              }
+              className={isSelected ? "!bg-white/10 !text-accent-foreground" : ""}
               onClick={() => selectNode(item.getId())}
             >
               <span className="flex items-center gap-1.5">
@@ -90,6 +113,7 @@ export function SceneGraph() {
           </TreeItem>
         );
       })}
+      <TreeDragLine />
     </Tree>
   );
 }

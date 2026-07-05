@@ -1,6 +1,8 @@
 import type { Object3D } from "three";
 import type { SceneNode } from "@/store/sceneStore";
 
+export const SCENE_ROOT_ID = "__scene__";
+
 export function flattenScene(root: Object3D): {
   rootUuid: string;
   nodes: Record<string, SceneNode>;

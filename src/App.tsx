@@ -1,12 +1,12 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { CameraControls, Environment, Grid, useGLTF } from "@react-three/drei";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { Toolbar } from "@/components/Toolbar";
 import { ImportButton } from "@/components/ImportButton";
 import { SceneGraph } from "@/components/SceneGraph";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useSceneStore } from "@/store/sceneStore";
-import { flattenScene, findByUuid } from "@/lib/scene";
+import { flattenScene, findByUuid, SCENE_ROOT_ID } from "@/lib/scene";
 import { useDragGuard } from "@/hooks/useDragGuard";
 import { useBoxHelper } from "@/hooks/useBoxHelper";
 import { NetworkIcon } from "lucide-react";
@@ -16,16 +16,36 @@ interface SceneModel {
   url: string;
 }
 
+function SceneRegistrar() {
+  const threeScene = useThree((s) => s.scene);
+  const registerObject = useSceneStore((s) => s.registerObject);
+  const unregisterObject = useSceneStore((s) => s.unregisterObject);
+
+  useEffect(() => {
+    registerObject(SCENE_ROOT_ID, threeScene);
+    return () => unregisterObject(SCENE_ROOT_ID);
+  }, [threeScene]);
+
+  return null;
+}
+
 function ModelInstance({ id, url }: { id: string; url: string }) {
   const { scene } = useGLTF(url);
   const addModel = useSceneStore((s) => s.addModel);
   const removeModel = useSceneStore((s) => s.removeModel);
+  const registerObject = useSceneStore((s) => s.registerObject);
+  const unregisterObject = useSceneStore((s) => s.unregisterObject);
   const selectedUuid = useSceneStore((s) => s.selectedUuid);
 
   useEffect(() => {
     const { rootUuid, nodes } = flattenScene(scene);
     addModel(id, nodes, rootUuid);
-    return () => removeModel(id);
+    scene.traverse((obj) => registerObject(obj.uuid, obj));
+
+    return () => {
+      removeModel(id);
+      scene.traverse((obj) => unregisterObject(obj.uuid));
+    };
   }, [scene, id]);
 
   const selectedObject = useMemo(
@@ -83,6 +103,7 @@ function App() {
             selectNode(null);
           }}
         >
+          <SceneRegistrar />
           <color attach="background" args={["#404040"]} />
           <group position={[0, 0, 0]}>
             <axesHelper args={[50]} renderOrder={1000}>
