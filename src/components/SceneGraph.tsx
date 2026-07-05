@@ -64,7 +64,9 @@ export function SceneGraph() {
         return (
           <TreeItem key={item.getId()} item={item}>
             <TreeItemLabel
-              className={isSelected ? "!bg-accent !text-accent-foreground" : ""}
+              className={
+                isSelected ? "!bg-white/10 !text-accent-foreground" : ""
+              }
               onClick={() => selectNode(item.getId())}
             >
               <span className="flex items-center gap-1.5">
