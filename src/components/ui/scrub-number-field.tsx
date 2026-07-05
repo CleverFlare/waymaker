@@ -1,11 +1,11 @@
-import { NumberField } from "@base-ui/react/number-field"
+import { NumberField } from "@base-ui/react/number-field";
 
 interface ScrubNumberFieldProps {
-  label: string
-  value: number
-  onChange: (value: number) => void
-  step?: number
-  format?: Intl.NumberFormatOptions
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+  step?: number;
+  format?: Intl.NumberFormatOptions;
 }
 
 export function ScrubNumberField({
@@ -18,7 +18,9 @@ export function ScrubNumberField({
   return (
     <NumberField.Root
       value={value}
-      onValueChange={(val) => { if (val !== null) onChange(val) }}
+      onValueChange={(val) => {
+        if (val !== null) onChange(val);
+      }}
       step={step}
       format={format}
       className="flex items-center gap-1.5"
@@ -29,7 +31,7 @@ export function ScrubNumberField({
       >
         {label}
       </NumberField.ScrubArea>
-      <NumberField.Input className="flex-1 min-w-0 rounded px-1.5 py-0.5 text-[11px] font-mono tabular-nums bg-muted/40 text-foreground border border-transparent focus:border-ring focus:bg-background focus:outline-none" />
+      <NumberField.Input className="flex-1 min-w-0 rounded px-1.5 py-0.5 text-[11px] font-mono tabular-nums bg-white/10 text-foreground border border-transparent focus:border-ring focus:bg-background focus:outline-none" />
     </NumberField.Root>
-  )
+  );
 }
