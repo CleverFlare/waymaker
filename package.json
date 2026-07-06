@@ -3,11 +3,33 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dist": "npm run build && electron-builder"
+  },
+  "build": {
+    "appId": "com.waymaker.app",
+    "productName": "Waymaker",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "linux": {
+      "target": ["AppImage", "deb"]
+    },
+    "mac": {
+      "target": ["dmg"]
+    },
+    "win": {
+      "target": ["nsis"]
+    }
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -17,7 +39,6 @@
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "@tailwindcss/vite": "^4.3.2",
-    "@tauri-apps/api": "^2.11.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^1.23.0",
@@ -31,13 +52,15 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.11.4",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
+    "electron": "^43.0.0",
+    "electron-builder": "^26.15.3",
     "oxlint": "^1.71.0",
     "typescript": "~6.0.2",
-    "vite": "^8.1.1"
+    "vite": "^8.1.1",
+    "vite-plugin-electron": "^1.1.0"
   }
 }
