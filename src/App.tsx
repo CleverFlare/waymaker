@@ -1,17 +1,19 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { CameraControls, Environment, Grid, useGLTF } from "@react-three/drei";
+import { CameraControls, Environment, useGLTF } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
 import { Vector2, WebGPURenderer } from "three/webgpu";
 import { Toolbar } from "@/components/Toolbar";
 import { ImportButton } from "@/components/ImportButton";
 import { SceneGraph } from "@/components/SceneGraph";
 import { PropertiesPanel } from "@/components/PropertiesPanel";
+// import { InfiniteGrid } from "@/components/InfiniteGrid";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useSceneStore } from "@/store/sceneStore";
 import { flattenScene, SCENE_ROOT_ID } from "@/lib/scene";
 import { useDragGuard } from "@/hooks/useDragGuard";
 import { useBoxHelper } from "@/hooks/useBoxHelper";
 import { NetworkIcon } from "lucide-react";
+import { InfiniteGrid } from "./components/GridHelper";
 
 interface SceneModel {
   id: string;
@@ -65,7 +67,7 @@ function SelectionManager() {
   }, [scene, camera, raycaster, gl, onPointerDown, wasDrag, selectNode]);
 
   const selectedObject = selectedUuid ? getObject(selectedUuid) : null;
-  const boxHelper = useBoxHelper(selectedObject);
+  const boxHelper = useBoxHelper(selectedObject ?? null);
 
   return boxHelper ? <primitive object={boxHelper} /> : null;
 }
@@ -133,28 +135,7 @@ function App() {
           <SceneRegistrar />
           <SelectionManager />
           <color attach="background" args={["#404040"]} />
-          <group position={[0, 0, 0]}>
-            <axesHelper args={[50]} renderOrder={1000}>
-              <lineBasicMaterial
-                attach="material"
-                vertexColors
-                depthTest={true}
-              />
-            </axesHelper>
-            <Grid
-              args={[10.5, 10.5]}
-              cellSize={0.6}
-              cellThickness={1}
-              cellColor="rgba(111, 111, 111, 1)"
-              sectionSize={3.6}
-              sectionThickness={1}
-              sectionColor="rgba(111, 111, 111, 1)"
-              fadeDistance={1000}
-              fadeStrength={1}
-              followCamera={true}
-              infiniteGrid
-            />
-          </group>
+          <InfiniteGrid fadeRadius={1000} />
           <Suspense fallback={null}>
             {models.map(({ id, url }) => (
               <ModelInstance key={id} id={id} url={url} />
