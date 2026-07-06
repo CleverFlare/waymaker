@@ -2,6 +2,12 @@
   "name": "waymaker",
   "private": true,
   "version": "0.0.0",
+  "description": "Waymaker 3D scene editor",
+  "author": {
+    "name": "Muhammad Maher",
+    "email": "blastclever@gmail.com"
+  },
+  "homepage": ".",
   "type": "module",
   "main": "dist-electron/main.js",
   "scripts": {
