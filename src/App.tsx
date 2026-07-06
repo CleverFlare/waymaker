@@ -1,6 +1,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { CameraControls, Environment, Grid, useGLTF } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
+import { Vector2, WebGPURenderer } from "three/webgpu";
 import { Toolbar } from "@/components/Toolbar";
 import { ImportButton } from "@/components/ImportButton";
 import { SceneGraph } from "@/components/SceneGraph";
@@ -49,7 +50,7 @@ function SelectionManager() {
       const rect = canvas.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-      raycaster.setFromCamera({ x, y }, camera);
+      raycaster.setFromCamera(new Vector2(x, y), camera);
       const intersects = raycaster.intersectObjects(scene.children, true);
       const hit = intersects.find((i) => nodesRef.current[i.object.uuid]);
       selectNode(hit ? hit.object.uuid : null);
@@ -119,7 +120,15 @@ function App() {
 
         <Canvas
           camera={{ position: [10, 10, 15], fov: 25 }}
-          gl={{ antialias: true }}
+          gl={async ({ canvas, antialias, alpha }) => {
+            const renderer = new WebGPURenderer({
+              canvas: canvas as HTMLCanvasElement,
+              antialias,
+              alpha,
+            });
+            await renderer.init();
+            return renderer;
+          }}
         >
           <SceneRegistrar />
           <SelectionManager />
