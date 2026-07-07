@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Move, MousePointer2, RotateCw, Scaling } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,8 +5,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-type Tool = "select" | "move" | "rotate" | "resize";
+import { useSceneStore, type Tool } from "@/store/sceneStore";
 
 const tools: { id: Tool; label: string; icon: React.ReactNode }[] = [
   { id: "select", label: "Select", icon: <MousePointer2 /> },
@@ -17,7 +15,8 @@ const tools: { id: Tool; label: string; icon: React.ReactNode }[] = [
 ];
 
 export function Toolbar() {
-  const [activeTool, setActiveTool] = useState<Tool>("select");
+  const activeTool = useSceneStore((s) => s.activeTool);
+  const setActiveTool = useSceneStore((s) => s.setActiveTool);
 
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1 rounded-xl border border-border bg-background/80 p-1.5 shadow-lg backdrop-blur-sm">

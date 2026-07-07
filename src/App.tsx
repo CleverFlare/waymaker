@@ -2,6 +2,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import {
   CameraControls,
   Environment,
+  TransformControls,
   useGLTF,
   useTexture,
 } from "@react-three/drei";
@@ -19,11 +20,14 @@ import {
   type ImagePlaneNode,
 } from "@/store/sceneStore";
 import { flattenScene, SCENE_ROOT_ID } from "@/lib/scene";
+import { eventBus } from "@/lib/eventBus";
 import { useDragGuard } from "@/hooks/useDragGuard";
 import { useBoxHelper } from "@/hooks/useBoxHelper";
 import { usePivotSprite } from "@/hooks/usePivotSprite";
 import { NetworkIcon } from "lucide-react";
 import { InfiniteGrid } from "./components/GridHelper";
+
+const gizmoInteracting = { current: false };
 
 const IMAGE_EXT = /\.(png|jpe?g|webp)$/i;
 
@@ -67,6 +71,7 @@ function SelectionManager() {
 
     const handleClick = (e: MouseEvent) => {
       if (wasDrag(e)) return;
+      if (gizmoInteracting.current) return;
       const rect = canvas.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -93,6 +98,67 @@ function SelectionManager() {
       {boxHelper && <primitive object={boxHelper} />}
       {pivotSprite && <primitive object={pivotSprite} />}
     </>
+  );
+}
+
+const TOOL_TO_MODE = {
+  move: "translate",
+  rotate: "rotate",
+  resize: "scale",
+} as const;
+
+function TransformGizmo() {
+  const selectedUuid = useSceneStore((s) => s.selectedUuid);
+  const activeTool = useSceneStore((s) => s.activeTool);
+  const nodes = useSceneStore((s) => s.nodes);
+  const getObject = useSceneStore((s) => s.getObject);
+  const updateNode = useSceneStore((s) => s.updateNode);
+  const { controls } = useThree();
+
+  if (!selectedUuid || activeTool === "select") return null;
+
+  const node = nodes[selectedUuid];
+  const object = getObject(selectedUuid);
+  if (!node || !object) return null;
+
+  if (
+    node.type === "ImagePlane" &&
+    (node as ImagePlaneNode).billboard &&
+    activeTool === "rotate"
+  )
+    return null;
+
+  const mode = TOOL_TO_MODE[activeTool as keyof typeof TOOL_TO_MODE];
+
+  return (
+    <TransformControls
+      key={selectedUuid}
+      object={object}
+      mode={mode}
+      space="world"
+      onMouseDown={() => {
+        gizmoInteracting.current = true;
+        if (controls)
+          (controls as unknown as { enabled: boolean }).enabled = false;
+      }}
+      onMouseUp={() => {
+        gizmoInteracting.current = false;
+        if (controls)
+          (controls as unknown as { enabled: boolean }).enabled = true;
+        const position: [number, number, number] = [object.position.x, object.position.y, object.position.z];
+        const rotation: [number, number, number] = [object.rotation.x, object.rotation.y, object.rotation.z];
+        const scale: [number, number, number] = [object.scale.x, object.scale.y, object.scale.z];
+        updateNode(selectedUuid, { position, rotation, scale });
+      }}
+      onChange={() => {
+        eventBus.emit("transform", {
+          uuid: selectedUuid,
+          position: [object.position.x, object.position.y, object.position.z],
+          rotation: [object.rotation.x, object.rotation.y, object.rotation.z],
+          scale: [object.scale.x, object.scale.y, object.scale.z],
+        });
+      }}
+    />
   );
 }
 
@@ -247,6 +313,7 @@ function App() {
         >
           <SceneRegistrar />
           <SelectionManager />
+          <TransformGizmo />
           <color attach="background" args={["#404040"]} />
           <InfiniteGrid fadeRadius={1000} />
           <Suspense fallback={null}>

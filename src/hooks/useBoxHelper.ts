@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { BoxHelper, type Object3D } from "three";
 
-export function useBoxHelper(object: Object3D | null, color = 0xffff00): BoxHelper | null {
+export function useBoxHelper(
+  object: Object3D | null,
+  color = 0xffff00,
+): BoxHelper | null {
   const [boxHelper, setBoxHelper] = useState<BoxHelper | null>(null);
 
   useEffect(() => {

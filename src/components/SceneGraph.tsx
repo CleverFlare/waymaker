@@ -1,5 +1,10 @@
 import { useLayoutEffect, useRef } from "react";
-import { Tree, TreeItem, TreeItemLabel, TreeDragLine } from "@/components/reui/tree";
+import {
+  Tree,
+  TreeItem,
+  TreeItemLabel,
+  TreeDragLine,
+} from "@/components/reui/tree";
 import {
   hotkeysCoreFeature,
   syncDataLoaderFeature,
@@ -7,7 +12,13 @@ import {
   createOnDropHandler,
 } from "@headless-tree/core";
 import { useTree } from "@headless-tree/react";
-import { FolderOpenIcon, FolderIcon, BoxIcon, FileIcon, ImageIcon } from "lucide-react";
+import {
+  FolderOpenIcon,
+  FolderIcon,
+  BoxIcon,
+  FileIcon,
+  ImageIcon,
+} from "lucide-react";
 import { useSceneStore } from "@/store/sceneStore";
 import { useAutoReveal } from "@/hooks/useAutoReveal";
 import { SCENE_ROOT_ID } from "@/lib/scene";
@@ -54,7 +65,9 @@ export function SceneGraph() {
     onDrop: createOnDropHandler((item, newChildIds) => {
       const parentId = item.getId();
       const currentChildIds = treeDataRef.current[parentId]?.children ?? [];
-      const addedIds = newChildIds.filter((id) => !currentChildIds.includes(id));
+      const addedIds = newChildIds.filter(
+        (id) => !currentChildIds.includes(id),
+      );
 
       reparentNodes(parentId, newChildIds);
 
@@ -92,9 +105,15 @@ export function SceneGraph() {
         const isImage = IMAGE_TYPES.has(data?.type ?? "");
 
         return (
-          <TreeItem key={item.getId()} item={item} {...item.getDragHandleProps()}>
+          <TreeItem
+            key={item.getId()}
+            item={item}
+            {...item.getDragHandleProps()}
+          >
             <TreeItemLabel
-              className={isSelected ? "!bg-white/10 !text-accent-foreground" : ""}
+              className={
+                isSelected ? "!bg-white/10 !text-accent-foreground" : ""
+              }
               onClick={() => selectNode(item.getId())}
             >
               <span className="flex items-center gap-1.5">

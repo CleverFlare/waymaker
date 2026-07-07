@@ -12,9 +12,13 @@ export function useAutoReveal(
     if (!selectedUuid) return;
 
     const parentMap: Record<string, string> = {};
-    modelRoots.forEach((id) => { parentMap[id] = rootId; });
+    modelRoots.forEach((id) => {
+      parentMap[id] = rootId;
+    });
     Object.values(nodes).forEach((node) => {
-      node.children.forEach((childId) => { parentMap[childId] = node.uuid; });
+      node.children.forEach((childId) => {
+        parentMap[childId] = node.uuid;
+      });
     });
 
     const ancestors: string[] = [];
@@ -27,7 +31,10 @@ export function useAutoReveal(
     ancestors.forEach((id) => tree.getItemInstance(id).expand());
 
     requestAnimationFrame(() => {
-      tree.getItemInstance(selectedUuid).getElement()?.scrollIntoView({ block: "center" });
+      tree
+        .getItemInstance(selectedUuid)
+        .getElement()
+        ?.scrollIntoView({ block: "center" });
     });
   }, [selectedUuid]);
 }

@@ -1,17 +1,13 @@
-"use client"
+"use client";
 
-import {
-  Tree,
-  TreeItem,
-  TreeItemLabel,
-} from "@/components/reui/tree"
-import { hotkeysCoreFeature, syncDataLoaderFeature } from "@headless-tree/core"
-import { useTree } from "@headless-tree/react"
-import { FolderOpenIcon, FolderIcon, FileIcon } from "lucide-react"
+import { Tree, TreeItem, TreeItemLabel } from "@/components/reui/tree";
+import { hotkeysCoreFeature, syncDataLoaderFeature } from "@headless-tree/core";
+import { useTree } from "@headless-tree/react";
+import { FolderOpenIcon, FolderIcon, FileIcon } from "lucide-react";
 
 interface Item {
-  name: string
-  children?: string[]
+  name: string;
+  children?: string[];
 }
 
 const items: Record<string, Item> = {
@@ -73,9 +69,9 @@ const items: Record<string, Item> = {
   },
   "open-tickets": { name: "Open Tickets" },
   "closed-tickets": { name: "Closed Tickets" },
-}
+};
 
-const indent = 20
+const indent = 20;
 
 export function Pattern() {
   const tree = useTree<Item>({
@@ -91,7 +87,7 @@ export function Pattern() {
       getChildren: (itemId) => items[itemId].children ?? [],
     },
     features: [syncDataLoaderFeature, hotkeysCoreFeature],
-  })
+  });
 
   return (
     <div className="mx-auto w-full grow place-self-start lg:w-xs">
@@ -118,9 +114,10 @@ export function Pattern() {
                 </span>
               </TreeItemLabel>
             </TreeItem>
-          )
+          );
         })}
       </Tree>
     </div>
-  )
+  );
 }
+

@@ -3,6 +3,7 @@ import type { Object3D } from "three";
 import { SCENE_ROOT_ID } from "@/lib/scene";
 
 export type Vec3 = [number, number, number];
+export type Tool = "select" | "move" | "rotate" | "resize";
 
 export interface BaseNode {
   uuid: string;
@@ -58,6 +59,8 @@ interface SceneStore {
   modelRoots: string[];
   modelIdToRoot: Record<string, string>;
   selectedUuid: string | null;
+  activeTool: Tool;
+  setActiveTool: (tool: Tool) => void;
   addModel: (
     modelId: string,
     nodes: Record<string, SceneNode>,
@@ -80,6 +83,8 @@ export const useSceneStore = create<SceneStore>((set, get) => {
     modelRoots: [],
     modelIdToRoot: {},
     selectedUuid: null,
+    activeTool: "select",
+    setActiveTool: (tool) => set({ activeTool: tool }),
 
     addModel: (modelId, newNodes, rootUuid) =>
       set((state) => ({
