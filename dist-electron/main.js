@@ -1,32 +1,39 @@
-import { BrowserWindow as e, Menu as t, MenuItem as n, app as r, dialog as i } from "electron";
-import a from "node:path";
-import { fileURLToPath as o } from "node:url";
-import s from "node:fs/promises";
+import { BrowserWindow, Menu, MenuItem, app, dialog } from "electron";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import fs from "node:fs/promises";
 //#region electron/main.ts
-var c = a.dirname(o(import.meta.url));
-process.env.DIST = a.join(c, "../dist"), process.env.VITE_PUBLIC = r.isPackaged ? process.env.DIST : a.join(process.env.DIST, "../public");
-var l;
-function u() {
-	l = new e({
+var __dirname = path.dirname(fileURLToPath(import.meta.url));
+process.env.DIST = path.join(__dirname, "../dist");
+process.env.VITE_PUBLIC = app.isPackaged ? process.env.DIST : path.join(process.env.DIST, "../public");
+var win;
+function createWindow() {
+	win = new BrowserWindow({
 		width: 1440,
 		height: 900,
 		webPreferences: {
-			preload: a.join(c, "preload.mjs"),
-			contextIsolation: !0,
-			nodeIntegration: !1
+			preload: path.join(__dirname, "preload.mjs"),
+			contextIsolation: true,
+			nodeIntegration: false
 		}
-	}), process.env.VITE_DEV_SERVER_URL ? (l.loadURL(process.env.VITE_DEV_SERVER_URL), l.webContents.openDevTools()) : l.loadFile(a.join(process.env.DIST, "index.html"));
+	});
+	if (process.env.VITE_DEV_SERVER_URL) {
+		win.loadURL(process.env.VITE_DEV_SERVER_URL);
+		win.webContents.openDevTools();
+	} else win.loadFile(path.join(process.env.DIST, "index.html"));
 }
-function d() {
-	let e = t.getApplicationMenu();
-	if (!e) return;
-	let r = e.items.find((e) => e.label === "File");
-	r?.submenu && (r.submenu.insert(0, new n({ type: "separator" })), r.submenu.insert(0, new n({
+function addImportMenuItem() {
+	const menu = Menu.getApplicationMenu();
+	if (!menu) return;
+	const fileMenu = menu.items.find((i) => i.label === "File");
+	if (!fileMenu?.submenu) return;
+	fileMenu.submenu.insert(0, new MenuItem({ type: "separator" }));
+	fileMenu.submenu.insert(0, new MenuItem({
 		label: "Import…",
 		accelerator: "CmdOrCtrl+I",
 		click: async () => {
-			if (!l) return;
-			let { canceled: e, filePaths: t } = await i.showOpenDialog(l, {
+			if (!win) return;
+			const { canceled, filePaths } = await dialog.showOpenDialog(win, {
 				properties: ["openFile", "multiSelections"],
 				filters: [
 					{
@@ -55,22 +62,29 @@ function d() {
 					}
 				]
 			});
-			if (!e && t.length > 0) {
-				let e = await Promise.all(t.map(async (e) => ({
-					name: a.basename(e),
-					buffer: (await s.readFile(e)).buffer
+			if (!canceled && filePaths.length > 0) {
+				const files = await Promise.all(filePaths.map(async (p) => ({
+					name: path.basename(p),
+					buffer: (await fs.readFile(p)).buffer
 				})));
-				l.webContents.send("import-files", e);
+				win.webContents.send("import-files", files);
 			}
 		}
-	})), t.setApplicationMenu(e));
+	}));
+	Menu.setApplicationMenu(menu);
 }
-r.whenReady().then(() => {
-	u(), d();
-}), r.on("window-all-closed", () => {
-	process.platform !== "darwin" && (r.quit(), l = null);
-}), r.on("activate", () => {
-	e.getAllWindows().length === 0 && u();
+app.whenReady().then(() => {
+	createWindow();
+	addImportMenuItem();
+});
+app.on("window-all-closed", () => {
+	if (process.platform !== "darwin") {
+		app.quit();
+		win = null;
+	}
+});
+app.on("activate", () => {
+	if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 //#endregion
 export {};
