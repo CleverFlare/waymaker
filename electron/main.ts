@@ -45,7 +45,11 @@ function addImportMenuItem() {
       if (!win) return
       const { canceled, filePaths } = await dialog.showOpenDialog(win, {
         properties: ['openFile', 'multiSelections'],
-        filters: [{ name: '3D Models', extensions: ['glb', 'gltf'] }],
+        filters: [
+          { name: 'All Assets', extensions: ['glb', 'gltf', 'png', 'jpg', 'jpeg', 'webp'] },
+          { name: '3D Models', extensions: ['glb', 'gltf'] },
+          { name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] },
+        ],
       })
       if (!canceled && filePaths.length > 0) {
         const files = await Promise.all(

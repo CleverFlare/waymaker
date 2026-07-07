@@ -1,7 +1,8 @@
-import { Suspense, useEffect, useRef, useState } from "react";
-import { CameraControls, Environment, useGLTF } from "@react-three/drei";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { CameraControls, Environment, useGLTF, useTexture } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
-import { Vector2, WebGPURenderer } from "three/webgpu";
+import * as THREE from "three";
+import { DoubleSide, Vector2, WebGPURenderer } from "three/webgpu";
 import { Toolbar } from "@/components/Toolbar";
 import { SceneGraph } from "@/components/SceneGraph";
 import { PropertiesPanel } from "@/components/PropertiesPanel";
@@ -15,9 +16,17 @@ import { usePivotSprite } from "@/hooks/usePivotSprite";
 import { NetworkIcon } from "lucide-react";
 import { InfiniteGrid } from "./components/GridHelper";
 
+const IMAGE_EXT = /\.(png|jpe?g|webp)$/i;
+
 interface SceneModel {
   id: string;
   url: string;
+}
+
+interface SceneImage {
+  id: string;
+  url: string;
+  name: string;
 }
 
 function SceneRegistrar() {
@@ -99,18 +108,55 @@ function ModelInstance({ id, url }: { id: string; url: string }) {
   return <primitive object={scene} position={[0, 0, 0]} />;
 }
 
+function ImageInstance({ id, url, name }: SceneImage) {
+  const texture = useTexture(url);
+  const meshRef = useRef<THREE.Mesh>(null);
+  const addModel = useSceneStore((s) => s.addModel);
+  const removeModel = useSceneStore((s) => s.removeModel);
+  const registerObject = useSceneStore((s) => s.registerObject);
+  const unregisterObject = useSceneStore((s) => s.unregisterObject);
+
+  const [planeW, planeH] = useMemo(() => {
+    const w = texture.image.width as number;
+    const h = texture.image.height as number;
+    const max = Math.max(w, h);
+    return [w / max, h / max];
+  }, [texture]);
+
+  useEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const node = { uuid: mesh.uuid, name, type: "Mesh", children: [] };
+    addModel(id, { [mesh.uuid]: node }, mesh.uuid);
+    registerObject(mesh.uuid, mesh);
+    return () => {
+      removeModel(id);
+      unregisterObject(mesh.uuid);
+    };
+  }, [id, name]);
+
+  return (
+    <mesh ref={meshRef}>
+      <planeGeometry args={[planeW, planeH]} />
+      <meshBasicMaterial map={texture} transparent alphaTest={0.1} side={DoubleSide} />
+    </mesh>
+  );
+}
+
 function App() {
   const [models, setModels] = useState<SceneModel[]>([]);
+  const [images, setImages] = useState<SceneImage[]>([]);
 
   useEffect(() => {
     return window.electronAPI.onImportFiles((files) => {
-      setModels((prev) => [
-        ...prev,
-        ...files.map(({ buffer }) => ({
-          id: crypto.randomUUID(),
-          url: URL.createObjectURL(new Blob([buffer])),
-        })),
-      ]);
+      for (const { name, buffer } of files) {
+        const url = URL.createObjectURL(new Blob([buffer]));
+        if (IMAGE_EXT.test(name)) {
+          setImages((prev) => [...prev, { id: crypto.randomUUID(), url, name: name.replace(/\.[^.]+$/, "") }]);
+        } else {
+          setModels((prev) => [...prev, { id: crypto.randomUUID(), url }]);
+        }
+      }
     });
   }, []);
 
@@ -148,6 +194,9 @@ function App() {
           <Suspense fallback={null}>
             {models.map(({ id, url }) => (
               <ModelInstance key={id} id={id} url={url} />
+            ))}
+            {images.map((img) => (
+              <ImageInstance key={img.id} {...img} />
             ))}
           </Suspense>
           <Environment preset="city" />
