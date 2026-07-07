@@ -234,9 +234,7 @@ function ImageInstance({ id, url, name }: SceneImage) {
     };
   }, [id, mesh, name]);
 
-  const _wp = useMemo(() => new THREE.Vector3(), []);
   const prevBillboard = useRef(false);
-  const prevSizeAttenuation = useRef(false);
 
   useFrame(({ camera }) => {
     const node = useSceneStore.getState().nodes[mesh.uuid] as
@@ -250,25 +248,6 @@ function ImageInstance({ id, url, name }: SceneImage) {
       mesh.rotation.set(node.rotation[0], node.rotation[1], node.rotation[2]);
     }
     prevBillboard.current = node.billboard;
-
-    if (node.sizeAttenuation) {
-      const dist = camera.position.distanceTo(mesh.getWorldPosition(_wp));
-      if (node.sizeAttenuationRef === null) {
-        useSceneStore
-          .getState()
-          .updateNode(mesh.uuid, { sizeAttenuationRef: dist });
-      } else {
-        const r = node.sizeAttenuationRef;
-        mesh.scale.set(
-          (node.scale[0] * dist) / r,
-          (node.scale[1] * dist) / r,
-          (node.scale[2] * dist) / r,
-        );
-      }
-    } else if (prevSizeAttenuation.current) {
-      mesh.scale.set(node.scale[0], node.scale[1], node.scale[2]);
-    }
-    prevSizeAttenuation.current = node.sizeAttenuation;
   });
 
   return <primitive object={mesh} />;

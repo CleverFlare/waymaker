@@ -18,8 +18,6 @@ export interface BaseNode {
 export interface ImagePlaneNode extends BaseNode {
   type: "ImagePlane";
   billboard: boolean;
-  sizeAttenuation: boolean;
-  sizeAttenuationRef: number | null;
 }
 
 export type SceneNode = BaseNode | ImagePlaneNode;
@@ -49,8 +47,6 @@ export function createImagePlaneNode(
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
     billboard: false,
-    sizeAttenuation: false,
-    sizeAttenuationRef: null,
   };
 }
 

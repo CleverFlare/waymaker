@@ -262,18 +262,6 @@ export function PropertiesPanel() {
                 updateNode(selectedUuid, { billboard: !ipNode.billboard })
               }
             />
-            <ToggleRow
-              label="Size Attenuation"
-              value={ipNode.sizeAttenuation}
-              onToggle={() =>
-                updateNode(selectedUuid, {
-                  sizeAttenuation: !ipNode.sizeAttenuation,
-                  sizeAttenuationRef: ipNode.sizeAttenuation
-                    ? null
-                    : ipNode.sizeAttenuationRef,
-                })
-              }
-            />
           </div>
         </div>
       ) : (
