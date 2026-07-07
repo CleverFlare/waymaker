@@ -2,7 +2,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { CameraControls, Environment, useGLTF, useTexture } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { DoubleSide, Vector2, WebGPURenderer } from "three/webgpu";
+import { Vector2, WebGPURenderer } from "three/webgpu";
 import { Toolbar } from "@/components/Toolbar";
 import { SceneGraph } from "@/components/SceneGraph";
 import { PropertiesPanel } from "@/components/PropertiesPanel";
@@ -110,37 +110,39 @@ function ModelInstance({ id, url }: { id: string; url: string }) {
 
 function ImageInstance({ id, url, name }: SceneImage) {
   const texture = useTexture(url);
-  const meshRef = useRef<THREE.Mesh>(null);
   const addModel = useSceneStore((s) => s.addModel);
   const removeModel = useSceneStore((s) => s.removeModel);
   const registerObject = useSceneStore((s) => s.registerObject);
   const unregisterObject = useSceneStore((s) => s.unregisterObject);
 
-  const [planeW, planeH] = useMemo(() => {
-    const w = texture.image.width as number;
-    const h = texture.image.height as number;
+  const mesh = useMemo(() => {
+    const w = (texture.image?.width as number) || 1;
+    const h = (texture.image?.height as number) || 1;
     const max = Math.max(w, h);
-    return [w / max, h / max];
+    const geo = new THREE.PlaneGeometry(w / max, h / max);
+    const mat = new THREE.MeshBasicMaterial({
+      map: texture,
+      transparent: true,
+      alphaTest: 0.1,
+      side: THREE.DoubleSide,
+    });
+    return new THREE.Mesh(geo, mat);
   }, [texture]);
 
   useEffect(() => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
+    mesh.name = name;
     const node = { uuid: mesh.uuid, name, type: "Mesh", children: [] };
     addModel(id, { [mesh.uuid]: node }, mesh.uuid);
     registerObject(mesh.uuid, mesh);
     return () => {
       removeModel(id);
       unregisterObject(mesh.uuid);
+      mesh.geometry.dispose();
+      (mesh.material as THREE.Material).dispose();
     };
-  }, [id, name]);
+  }, [id, mesh, name]);
 
-  return (
-    <mesh ref={meshRef}>
-      <planeGeometry args={[planeW, planeH]} />
-      <meshBasicMaterial map={texture} transparent alphaTest={0.1} side={DoubleSide} />
-    </mesh>
-  );
+  return <primitive object={mesh} />;
 }
 
 function App() {
