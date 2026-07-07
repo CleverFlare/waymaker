@@ -12,6 +12,7 @@ import { useSceneStore } from "@/store/sceneStore";
 import { flattenScene, SCENE_ROOT_ID } from "@/lib/scene";
 import { useDragGuard } from "@/hooks/useDragGuard";
 import { useBoxHelper } from "@/hooks/useBoxHelper";
+import { usePivotSprite } from "@/hooks/usePivotSprite";
 import { NetworkIcon } from "lucide-react";
 import { InfiniteGrid } from "./components/GridHelper";
 
@@ -68,8 +69,14 @@ function SelectionManager() {
 
   const selectedObject = selectedUuid ? getObject(selectedUuid) : null;
   const boxHelper = useBoxHelper(selectedObject ?? null);
+  const pivotSprite = usePivotSprite(selectedObject ?? null);
 
-  return boxHelper ? <primitive object={boxHelper} /> : null;
+  return (
+    <>
+      {boxHelper && <primitive object={boxHelper} />}
+      {pivotSprite && <primitive object={pivotSprite} />}
+    </>
+  );
 }
 
 function ModelInstance({ id, url }: { id: string; url: string }) {
