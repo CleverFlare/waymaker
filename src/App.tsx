@@ -145,9 +145,21 @@ function TransformGizmo() {
         gizmoInteracting.current = false;
         if (controls)
           (controls as unknown as { enabled: boolean }).enabled = true;
-        const position: [number, number, number] = [object.position.x, object.position.y, object.position.z];
-        const rotation: [number, number, number] = [object.rotation.x, object.rotation.y, object.rotation.z];
-        const scale: [number, number, number] = [object.scale.x, object.scale.y, object.scale.z];
+        const position: [number, number, number] = [
+          object.position.x,
+          object.position.y,
+          object.position.z,
+        ];
+        const rotation: [number, number, number] = [
+          object.rotation.x,
+          object.rotation.y,
+          object.rotation.z,
+        ];
+        const scale: [number, number, number] = [
+          object.scale.x,
+          object.scale.y,
+          object.scale.z,
+        ];
         updateNode(selectedUuid, { position, rotation, scale });
       }}
       onChange={() => {
@@ -191,8 +203,10 @@ function ImageInstance({ id, url, name }: SceneImage) {
   const unregisterObject = useSceneStore((s) => s.unregisterObject);
 
   const mesh = useMemo(() => {
-    const w = (texture.image?.width as number) || 1;
-    const h = (texture.image?.height as number) || 1;
+    const w =
+      ((texture.image as Record<string, unknown>)?.width as number) || 1;
+    const h =
+      ((texture.image as Record<string, unknown>)?.height as number) || 1;
     const max = Math.max(w, h);
     const geo = new THREE.PlaneGeometry(w / max, h / max);
     const mat = new THREE.MeshBasicMaterial({
@@ -301,11 +315,11 @@ function App() {
 
         <Canvas
           camera={{ position: [10, 10, 15], fov: 25 }}
-          gl={async ({ canvas, antialias, alpha }) => {
+          gl={async ({ canvas, antialias }) => {
             const renderer = new WebGPURenderer({
               canvas: canvas as HTMLCanvasElement,
               antialias,
-              alpha,
+              alpha: true,
             });
             await renderer.init();
             return renderer;

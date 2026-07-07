@@ -35,12 +35,14 @@
     },
     "mac": {
       "target": [
-        "dmg"
+        "dmg",
+        "zip"
       ]
     },
     "win": {
       "target": [
-        "nsis"
+        "nsis",
+        "zip"
       ]
     }
   },
