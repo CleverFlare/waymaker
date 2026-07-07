@@ -1,6 +1,6 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { CameraControls, Environment, useGLTF, useTexture } from "@react-three/drei";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Vector2, WebGPURenderer } from "three/webgpu";
 import { Toolbar } from "@/components/Toolbar";
@@ -8,7 +8,7 @@ import { SceneGraph } from "@/components/SceneGraph";
 import { PropertiesPanel } from "@/components/PropertiesPanel";
 // import { InfiniteGrid } from "@/components/InfiniteGrid";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useSceneStore } from "@/store/sceneStore";
+import { useSceneStore, createImagePlaneNode, type ImagePlaneNode } from "@/store/sceneStore";
 import { flattenScene, SCENE_ROOT_ID } from "@/lib/scene";
 import { useDragGuard } from "@/hooks/useDragGuard";
 import { useBoxHelper } from "@/hooks/useBoxHelper";
@@ -131,8 +131,7 @@ function ImageInstance({ id, url, name }: SceneImage) {
 
   useEffect(() => {
     mesh.name = name;
-    const node = { uuid: mesh.uuid, name, type: "ImagePlane", children: [] };
-    addModel(id, { [mesh.uuid]: node }, mesh.uuid);
+    addModel(id, { [mesh.uuid]: createImagePlaneNode(mesh.uuid, name) }, mesh.uuid);
     registerObject(mesh.uuid, mesh);
     return () => {
       removeModel(id);
@@ -141,6 +140,39 @@ function ImageInstance({ id, url, name }: SceneImage) {
       (mesh.material as THREE.Material).dispose();
     };
   }, [id, mesh, name]);
+
+  const _wp = useMemo(() => new THREE.Vector3(), []);
+  const prevBillboard = useRef(false);
+  const prevSizeAttenuation = useRef(false);
+
+  useFrame(({ camera }) => {
+    const node = useSceneStore.getState().nodes[mesh.uuid] as ImagePlaneNode | undefined;
+    if (!node) return;
+
+    if (node.billboard) {
+      mesh.quaternion.copy(camera.quaternion);
+    } else if (prevBillboard.current) {
+      mesh.rotation.set(node.rotation[0], node.rotation[1], node.rotation[2]);
+    }
+    prevBillboard.current = node.billboard;
+
+    if (node.sizeAttenuation) {
+      const dist = camera.position.distanceTo(mesh.getWorldPosition(_wp));
+      if (node.sizeAttenuationRef === null) {
+        useSceneStore.getState().updateNode(mesh.uuid, { sizeAttenuationRef: dist });
+      } else {
+        const r = node.sizeAttenuationRef;
+        mesh.scale.set(
+          node.scale[0] * dist / r,
+          node.scale[1] * dist / r,
+          node.scale[2] * dist / r,
+        );
+      }
+    } else if (prevSizeAttenuation.current) {
+      mesh.scale.set(node.scale[0], node.scale[1], node.scale[2]);
+    }
+    prevSizeAttenuation.current = node.sizeAttenuation;
+  });
 
   return <primitive object={mesh} />;
 }

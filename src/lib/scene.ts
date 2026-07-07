@@ -1,5 +1,5 @@
 import type { Object3D } from "three";
-import type { SceneNode } from "@/store/sceneStore";
+import { createBaseNode, type SceneNode } from "@/store/sceneStore";
 
 export const SCENE_ROOT_ID = "__scene__";
 
@@ -15,7 +15,15 @@ export function flattenScene(root: Object3D): {
     const validChildren = obj.children
       .filter((c) => c.type !== "Bone")
       .map((c) => walk(c));
-    nodes[obj.uuid] = { uuid: obj.uuid, name, type: obj.type, children: validChildren };
+    nodes[obj.uuid] = createBaseNode(
+      obj.uuid,
+      name,
+      obj.type,
+      validChildren,
+      [obj.position.x, obj.position.y, obj.position.z],
+      [obj.rotation.x, obj.rotation.y, obj.rotation.z],
+      [obj.scale.x, obj.scale.y, obj.scale.z],
+    );
     return obj.uuid;
   }
 

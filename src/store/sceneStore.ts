@@ -2,11 +2,52 @@ import { create } from "zustand"
 import type { Object3D } from "three"
 import { SCENE_ROOT_ID } from "@/lib/scene"
 
-export interface SceneNode {
+export type Vec3 = [number, number, number]
+
+export interface BaseNode {
   uuid: string
   name: string
   type: string
   children: string[]
+  position: Vec3
+  rotation: Vec3
+  scale: Vec3
+}
+
+export interface ImagePlaneNode extends BaseNode {
+  type: "ImagePlane"
+  billboard: boolean
+  sizeAttenuation: boolean
+  sizeAttenuationRef: number | null
+}
+
+export type SceneNode = BaseNode | ImagePlaneNode
+
+export function createBaseNode(
+  uuid: string,
+  name: string,
+  type: string,
+  children: string[],
+  position: Vec3 = [0, 0, 0],
+  rotation: Vec3 = [0, 0, 0],
+  scale: Vec3 = [1, 1, 1],
+): BaseNode {
+  return { uuid, name, type, children, position, rotation, scale }
+}
+
+export function createImagePlaneNode(uuid: string, name: string): ImagePlaneNode {
+  return {
+    uuid,
+    name,
+    type: "ImagePlane",
+    children: [],
+    position: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    billboard: false,
+    sizeAttenuation: false,
+    sizeAttenuationRef: null,
+  }
 }
 
 interface SceneStore {
@@ -21,10 +62,10 @@ interface SceneStore {
   unregisterObject: (uuid: string) => void
   getObject: (uuid: string) => Object3D | undefined
   reparentNodes: (parentId: string, newChildIds: string[]) => void
+  updateNode: (uuid: string, patch: Partial<SceneNode>) => void
 }
 
 export const useSceneStore = create<SceneStore>((set, get) => {
-  // Stored outside Zustand state so mutations don't trigger re-renders
   const objectRefs: Record<string, Object3D> = {}
 
   return {
@@ -85,5 +126,12 @@ export const useSceneStore = create<SceneStore>((set, get) => {
         })
       }
     },
+
+    updateNode: (uuid, patch) =>
+      set((state) => {
+        const node = state.nodes[uuid]
+        if (!node) return state
+        return { nodes: { ...state.nodes, [uuid]: { ...node, ...patch } } }
+      }),
   }
 })

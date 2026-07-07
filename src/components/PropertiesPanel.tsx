@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react"
 import { Box3, MathUtils, Mesh, Vector3 } from "three"
-import { useSceneStore } from "@/store/sceneStore"
+import { useSceneStore, type Vec3, type ImagePlaneNode } from "@/store/sceneStore"
 import { ScrubNumberField } from "@/components/ui/scrub-number-field"
 import { Button } from "@/components/ui/button"
-
-type Vec3 = [number, number, number]
 
 const AXES = ["X", "Y", "Z"] as const
 
@@ -44,10 +42,27 @@ function Vec3Section({
   )
 }
 
+function ToggleRow({ label, value, onToggle }: { label: string; value: boolean; onToggle: () => void }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <span className="text-xs text-foreground">{label}</span>
+      <Button
+        variant={value ? "default" : "outline"}
+        size="sm"
+        className="h-6 px-2 text-xs"
+        onClick={onToggle}
+      >
+        {value ? "On" : "Off"}
+      </Button>
+    </div>
+  )
+}
+
 export function PropertiesPanel() {
   const selectedUuid = useSceneStore((s) => s.selectedUuid)
   const nodes = useSceneStore((s) => s.nodes)
   const getObject = useSceneStore((s) => s.getObject)
+  const updateNode = useSceneStore((s) => s.updateNode)
 
   const [pos, setPos] = useState<Vec3>([0, 0, 0])
   const [rot, setRot] = useState<Vec3>([0, 0, 0])
@@ -55,15 +70,11 @@ export function PropertiesPanel() {
 
   useEffect(() => {
     if (!selectedUuid) return
-    const obj = getObject(selectedUuid)
-    if (!obj) return
-    setPos([obj.position.x, obj.position.y, obj.position.z])
-    setRot([
-      MathUtils.radToDeg(obj.rotation.x),
-      MathUtils.radToDeg(obj.rotation.y),
-      MathUtils.radToDeg(obj.rotation.z),
-    ])
-    setScale([obj.scale.x, obj.scale.y, obj.scale.z])
+    const node = nodes[selectedUuid]
+    if (!node) return
+    setPos(node.position)
+    setRot(node.rotation.map(MathUtils.radToDeg) as Vec3)
+    setScale(node.scale)
   }, [selectedUuid])
 
   if (!selectedUuid) return null
@@ -74,19 +85,29 @@ export function PropertiesPanel() {
   const handlePos = (axis: 0 | 1 | 2, val: number) => {
     const keys = ["x", "y", "z"] as const
     obj.position[keys[axis]] = val
-    setPos((prev) => { const next = [...prev] as Vec3; next[axis] = val; return next })
+    const next = [...node.position] as Vec3
+    next[axis] = val
+    updateNode(selectedUuid, { position: next })
+    setPos((prev) => { const n = [...prev] as Vec3; n[axis] = val; return n })
   }
 
   const handleRot = (axis: 0 | 1 | 2, val: number) => {
     const keys = ["x", "y", "z"] as const
-    obj.rotation[keys[axis]] = MathUtils.degToRad(val)
-    setRot((prev) => { const next = [...prev] as Vec3; next[axis] = val; return next })
+    const rad = MathUtils.degToRad(val)
+    obj.rotation[keys[axis]] = rad
+    const next = [...node.rotation] as Vec3
+    next[axis] = rad
+    updateNode(selectedUuid, { rotation: next })
+    setRot((prev) => { const n = [...prev] as Vec3; n[axis] = val; return n })
   }
 
   const handleScale = (axis: 0 | 1 | 2, val: number) => {
     const keys = ["x", "y", "z"] as const
     obj.scale[keys[axis]] = val
-    setScale((prev) => { const next = [...prev] as Vec3; next[axis] = val; return next })
+    const next = [...node.scale] as Vec3
+    next[axis] = val
+    updateNode(selectedUuid, { scale: next })
+    setScale((prev) => { const n = [...prev] as Vec3; n[axis] = val; return n })
   }
 
   const handleCenterPivot = () => {
@@ -98,21 +119,17 @@ export function PropertiesPanel() {
     const W_center = new Vector3()
     box.getCenter(W_center)
 
-    // Bounding box center in obj's local space (computed before any changes)
     const C_O = obj.worldToLocal(W_center.clone())
 
-    // Shift direct children so their world positions stay fixed
     for (const child of obj.children) {
       child.position.sub(C_O)
       child.updateMatrix()
     }
 
-    // Shift geometry vertices if this is a Mesh
     if (obj instanceof Mesh && obj.geometry) {
       obj.geometry.translate(-C_O.x, -C_O.y, -C_O.z)
     }
 
-    // Move obj so its local origin lands at W_center in world space
     const newPos = obj.parent
       ? obj.parent.worldToLocal(W_center.clone())
       : W_center.clone()
@@ -120,10 +137,21 @@ export function PropertiesPanel() {
     obj.updateMatrix()
     obj.updateMatrixWorld(true)
 
-    setPos([obj.position.x, obj.position.y, obj.position.z])
+    const p: Vec3 = [obj.position.x, obj.position.y, obj.position.z]
+    updateNode(selectedUuid, { position: p })
+    setPos(p)
   }
 
   const isImagePlane = node.type === "ImagePlane"
+  const ipNode = isImagePlane ? node as ImagePlaneNode : null
+
+  const transforms = (
+    <>
+      <Vec3Section label="Position" values={pos} onAxisChange={handlePos} step={0.1} format={POS_FORMAT} />
+      <Vec3Section label="Rotation" values={rot} onAxisChange={handleRot} step={1} format={ROT_FORMAT} />
+      <Vec3Section label="Scale" values={scale} onAxisChange={handleScale} step={0.01} format={SCALE_FORMAT} />
+    </>
+  )
 
   return (
     <aside className="absolute right-4 top-4 z-10 w-56 flex flex-col rounded-xl border border-border bg-background/80 backdrop-blur-sm shadow-lg overflow-hidden max-h-[calc(100%-2rem)]">
@@ -131,17 +159,29 @@ export function PropertiesPanel() {
         <p className="text-sm font-medium text-foreground truncate">{node.name}</p>
         <p className="text-xs text-muted-foreground">{node.type}</p>
       </div>
-      {isImagePlane ? (
+      {ipNode ? (
         <div className="min-h-0 overflow-y-auto p-3 space-y-4">
-          <Vec3Section label="Position" values={pos} onAxisChange={handlePos} step={0.1} format={POS_FORMAT} />
-          <Vec3Section label="Rotation" values={rot} onAxisChange={handleRot} step={1} format={ROT_FORMAT} />
-          <Vec3Section label="Scale" values={scale} onAxisChange={handleScale} step={0.01} format={SCALE_FORMAT} />
+          {transforms}
+          <div className="space-y-2">
+            <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">Image</p>
+            <ToggleRow
+              label="Billboard"
+              value={ipNode.billboard}
+              onToggle={() => updateNode(selectedUuid, { billboard: !ipNode.billboard })}
+            />
+            <ToggleRow
+              label="Size Attenuation"
+              value={ipNode.sizeAttenuation}
+              onToggle={() => updateNode(selectedUuid, {
+                sizeAttenuation: !ipNode.sizeAttenuation,
+                sizeAttenuationRef: ipNode.sizeAttenuation ? null : ipNode.sizeAttenuationRef,
+              })}
+            />
+          </div>
         </div>
       ) : (
         <div className="min-h-0 overflow-y-auto p-3 space-y-4">
-          <Vec3Section label="Position" values={pos} onAxisChange={handlePos} step={0.1} format={POS_FORMAT} />
-          <Vec3Section label="Rotation" values={rot} onAxisChange={handleRot} step={1} format={ROT_FORMAT} />
-          <Vec3Section label="Scale" values={scale} onAxisChange={handleScale} step={0.01} format={SCALE_FORMAT} />
+          {transforms}
           <Button variant="outline" size="sm" className="w-full" onClick={handleCenterPivot}>
             Center Pivot
           </Button>
