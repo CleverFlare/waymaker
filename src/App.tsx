@@ -1,5 +1,10 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { CameraControls, Environment, useGLTF, useTexture } from "@react-three/drei";
+import {
+  CameraControls,
+  Environment,
+  useGLTF,
+  useTexture,
+} from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Vector2, WebGPURenderer } from "three/webgpu";
@@ -8,7 +13,11 @@ import { SceneGraph } from "@/components/SceneGraph";
 import { PropertiesPanel } from "@/components/PropertiesPanel";
 // import { InfiniteGrid } from "@/components/InfiniteGrid";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useSceneStore, createImagePlaneNode, type ImagePlaneNode } from "@/store/sceneStore";
+import {
+  useSceneStore,
+  createImagePlaneNode,
+  type ImagePlaneNode,
+} from "@/store/sceneStore";
 import { flattenScene, SCENE_ROOT_ID } from "@/lib/scene";
 import { useDragGuard } from "@/hooks/useDragGuard";
 import { useBoxHelper } from "@/hooks/useBoxHelper";
@@ -131,7 +140,11 @@ function ImageInstance({ id, url, name }: SceneImage) {
 
   useEffect(() => {
     mesh.name = name;
-    addModel(id, { [mesh.uuid]: createImagePlaneNode(mesh.uuid, name) }, mesh.uuid);
+    addModel(
+      id,
+      { [mesh.uuid]: createImagePlaneNode(mesh.uuid, name) },
+      mesh.uuid,
+    );
     registerObject(mesh.uuid, mesh);
     return () => {
       removeModel(id);
@@ -146,7 +159,9 @@ function ImageInstance({ id, url, name }: SceneImage) {
   const prevSizeAttenuation = useRef(false);
 
   useFrame(({ camera }) => {
-    const node = useSceneStore.getState().nodes[mesh.uuid] as ImagePlaneNode | undefined;
+    const node = useSceneStore.getState().nodes[mesh.uuid] as
+      | ImagePlaneNode
+      | undefined;
     if (!node) return;
 
     if (node.billboard) {
@@ -159,13 +174,15 @@ function ImageInstance({ id, url, name }: SceneImage) {
     if (node.sizeAttenuation) {
       const dist = camera.position.distanceTo(mesh.getWorldPosition(_wp));
       if (node.sizeAttenuationRef === null) {
-        useSceneStore.getState().updateNode(mesh.uuid, { sizeAttenuationRef: dist });
+        useSceneStore
+          .getState()
+          .updateNode(mesh.uuid, { sizeAttenuationRef: dist });
       } else {
         const r = node.sizeAttenuationRef;
         mesh.scale.set(
-          node.scale[0] * dist / r,
-          node.scale[1] * dist / r,
-          node.scale[2] * dist / r,
+          (node.scale[0] * dist) / r,
+          (node.scale[1] * dist) / r,
+          (node.scale[2] * dist) / r,
         );
       }
     } else if (prevSizeAttenuation.current) {
@@ -186,7 +203,14 @@ function App() {
       for (const { name, buffer } of files) {
         const url = URL.createObjectURL(new Blob([buffer]));
         if (IMAGE_EXT.test(name)) {
-          setImages((prev) => [...prev, { id: crypto.randomUUID(), url, name: name.replace(/\.[^.]+$/, "") }]);
+          setImages((prev) => [
+            ...prev,
+            {
+              id: crypto.randomUUID(),
+              url,
+              name: name.replace(/\.[^.]+$/, ""),
+            },
+          ]);
         } else {
           setModels((prev) => [...prev, { id: crypto.randomUUID(), url }]);
         }
