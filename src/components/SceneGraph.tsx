@@ -7,12 +7,13 @@ import {
   createOnDropHandler,
 } from "@headless-tree/core";
 import { useTree } from "@headless-tree/react";
-import { FolderOpenIcon, FolderIcon, BoxIcon, FileIcon } from "lucide-react";
+import { FolderOpenIcon, FolderIcon, BoxIcon, FileIcon, ImageIcon } from "lucide-react";
 import { useSceneStore } from "@/store/sceneStore";
 import { useAutoReveal } from "@/hooks/useAutoReveal";
 import { SCENE_ROOT_ID } from "@/lib/scene";
 
 const MESH_TYPES = new Set(["Mesh", "SkinnedMesh"]);
+const IMAGE_TYPES = new Set(["ImagePlane"]);
 
 interface TreeItemData {
   name: string;
@@ -88,6 +89,7 @@ export function SceneGraph() {
         const data = treeDataRef.current[item.getId()];
         const isSelected = item.getId() === selectedUuid;
         const isMesh = MESH_TYPES.has(data?.type ?? "");
+        const isImage = IMAGE_TYPES.has(data?.type ?? "");
 
         return (
           <TreeItem key={item.getId()} item={item} {...item.getDragHandleProps()}>
@@ -102,6 +104,8 @@ export function SceneGraph() {
                   ) : (
                     <FolderIcon className="text-muted-foreground pointer-events-none size-3.5 shrink-0" />
                   )
+                ) : isImage ? (
+                  <ImageIcon className="text-muted-foreground pointer-events-none size-3.5 shrink-0" />
                 ) : isMesh ? (
                   <BoxIcon className="text-muted-foreground pointer-events-none size-3.5 shrink-0" />
                 ) : (

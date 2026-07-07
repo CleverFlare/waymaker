@@ -123,20 +123,30 @@ export function PropertiesPanel() {
     setPos([obj.position.x, obj.position.y, obj.position.z])
   }
 
+  const isImagePlane = node.type === "ImagePlane"
+
   return (
     <aside className="absolute right-4 top-4 z-10 w-56 flex flex-col rounded-xl border border-border bg-background/80 backdrop-blur-sm shadow-lg overflow-hidden max-h-[calc(100%-2rem)]">
       <div className="px-3 py-2 border-b border-border shrink-0">
         <p className="text-sm font-medium text-foreground truncate">{node.name}</p>
         <p className="text-xs text-muted-foreground">{node.type}</p>
       </div>
-      <div className="min-h-0 overflow-y-auto p-3 space-y-4">
-        <Vec3Section label="Position" values={pos} onAxisChange={handlePos} step={0.1} format={POS_FORMAT} />
-        <Vec3Section label="Rotation" values={rot} onAxisChange={handleRot} step={1} format={ROT_FORMAT} />
-        <Vec3Section label="Scale" values={scale} onAxisChange={handleScale} step={0.01} format={SCALE_FORMAT} />
-        <Button variant="outline" size="sm" className="w-full" onClick={handleCenterPivot}>
-          Center Pivot
-        </Button>
-      </div>
+      {isImagePlane ? (
+        <div className="min-h-0 overflow-y-auto p-3 space-y-4">
+          <Vec3Section label="Position" values={pos} onAxisChange={handlePos} step={0.1} format={POS_FORMAT} />
+          <Vec3Section label="Rotation" values={rot} onAxisChange={handleRot} step={1} format={ROT_FORMAT} />
+          <Vec3Section label="Scale" values={scale} onAxisChange={handleScale} step={0.01} format={SCALE_FORMAT} />
+        </div>
+      ) : (
+        <div className="min-h-0 overflow-y-auto p-3 space-y-4">
+          <Vec3Section label="Position" values={pos} onAxisChange={handlePos} step={0.1} format={POS_FORMAT} />
+          <Vec3Section label="Rotation" values={rot} onAxisChange={handleRot} step={1} format={ROT_FORMAT} />
+          <Vec3Section label="Scale" values={scale} onAxisChange={handleScale} step={0.01} format={SCALE_FORMAT} />
+          <Button variant="outline" size="sm" className="w-full" onClick={handleCenterPivot}>
+            Center Pivot
+          </Button>
+        </div>
+      )}
     </aside>
   )
 }

@@ -131,7 +131,7 @@ function ImageInstance({ id, url, name }: SceneImage) {
 
   useEffect(() => {
     mesh.name = name;
-    const node = { uuid: mesh.uuid, name, type: "Mesh", children: [] };
+    const node = { uuid: mesh.uuid, name, type: "ImagePlane", children: [] };
     addModel(id, { [mesh.uuid]: node }, mesh.uuid);
     registerObject(mesh.uuid, mesh);
     return () => {
