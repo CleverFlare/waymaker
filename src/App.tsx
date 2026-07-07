@@ -1,9 +1,8 @@
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { CameraControls, Environment, useGLTF } from "@react-three/drei";
 import { Canvas, useThree } from "@react-three/fiber";
 import { Vector2, WebGPURenderer } from "three/webgpu";
 import { Toolbar } from "@/components/Toolbar";
-import { ImportButton } from "@/components/ImportButton";
 import { SceneGraph } from "@/components/SceneGraph";
 import { PropertiesPanel } from "@/components/PropertiesPanel";
 // import { InfiniteGrid } from "@/components/InfiniteGrid";
@@ -103,12 +102,16 @@ function ModelInstance({ id, url }: { id: string; url: string }) {
 function App() {
   const [models, setModels] = useState<SceneModel[]>([]);
 
-  const handleImport = useCallback((files: FileList) => {
-    const incoming = Array.from(files).map((file) => ({
-      id: crypto.randomUUID(),
-      url: URL.createObjectURL(file),
-    }));
-    setModels((prev) => [...prev, ...incoming]);
+  useEffect(() => {
+    return window.electronAPI.onImportFiles((files) => {
+      setModels((prev) => [
+        ...prev,
+        ...files.map(({ buffer }) => ({
+          id: crypto.randomUUID(),
+          url: URL.createObjectURL(new Blob([buffer])),
+        })),
+      ]);
+    });
   }, []);
 
   return (
@@ -120,7 +123,6 @@ function App() {
               <NetworkIcon className="inline-block text-muted-foreground pointer-events-none size-3.5 shrink-0 me-2" />
               Scene
             </span>
-            <ImportButton onImport={handleImport} />
           </div>
           <div className="flex-1 overflow-y-auto">
             <SceneGraph />
