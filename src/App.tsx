@@ -4,7 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import { WebGPURenderer } from "three/webgpu";
 import { Toolbar } from "@/components/Toolbar";
 import { SceneGraph } from "@/components/SceneGraph";
-import { PropertiesPanel } from "@/components/PropertiesPanel";
+import { PanelRouter } from "@/components/panels/PanelRouter";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SceneRegistrar } from "@/components/scene/SceneRegistrar";
 import { SelectionManager } from "@/components/scene/SelectionManager";
@@ -61,7 +61,7 @@ export default function App() {
           <Environment preset="city" />
           <CameraControls makeDefault dollyToCursor />
         </Canvas>
-        <PropertiesPanel />
+        <PanelRouter />
         <Toolbar />
       </div>
     </TooltipProvider>
