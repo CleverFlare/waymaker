@@ -67,7 +67,7 @@ export function ImagePlanePanel({ node }: { node: ImagePlaneNode }) {
         </Panel.Vec3>
         <Panel.Vec3>
           <Panel.Vec3.Label>Scale</Panel.Vec3.Label>
-          {AXES.map((axis, i) => (
+          {["X", "Y"].map((axis, i) => (
             <Panel.Vec3.Field
               key={axis}
               label={axis}
