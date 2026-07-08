@@ -1,11 +1,1 @@
-let electron = require("electron");
-//#region electron/preload.ts
-electron.contextBridge.exposeInMainWorld("electronAPI", {
-	platform: process.platform,
-	onImportFiles: (callback) => {
-		const handler = (_event, files) => callback(files);
-		electron.ipcRenderer.on("import-files", handler);
-		return () => electron.ipcRenderer.removeListener("import-files", handler);
-	}
-});
-//#endregion
+let e=require("electron");e.contextBridge.exposeInMainWorld(`electronAPI`,{platform:process.platform,onImportFiles:t=>{let n=(e,n)=>t(n);return e.ipcRenderer.on(`import-files`,n),()=>e.ipcRenderer.removeListener(`import-files`,n)}});
