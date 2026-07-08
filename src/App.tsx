@@ -6,7 +6,7 @@ import {
   useGLTF,
   useTexture,
 } from "@react-three/drei";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { Vector2, WebGPURenderer } from "three/webgpu";
 import { Toolbar } from "@/components/Toolbar";
@@ -17,7 +17,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import {
   useSceneStore,
   createImagePlaneNode,
-  type ImagePlaneNode,
 } from "@/store/sceneStore";
 import { flattenScene, SCENE_ROOT_ID } from "@/lib/scene";
 import { eventBus } from "@/lib/eventBus";
@@ -120,13 +119,6 @@ function TransformGizmo() {
   const node = nodes[selectedUuid];
   const object = getObject(selectedUuid);
   if (!node || !object) return null;
-
-  if (
-    node.type === "ImagePlane" &&
-    (node as ImagePlaneNode).billboard &&
-    activeTool === "rotate"
-  )
-    return null;
 
   const mode = TOOL_TO_MODE[activeTool as keyof typeof TOOL_TO_MODE];
 
@@ -233,22 +225,6 @@ function ImageInstance({ id, url, name }: SceneImage) {
       (mesh.material as THREE.Material).dispose();
     };
   }, [id, mesh, name]);
-
-  const prevBillboard = useRef(false);
-
-  useFrame(({ camera }) => {
-    const node = useSceneStore.getState().nodes[mesh.uuid] as
-      | ImagePlaneNode
-      | undefined;
-    if (!node) return;
-
-    if (node.billboard) {
-      mesh.quaternion.copy(camera.quaternion);
-    } else if (prevBillboard.current) {
-      mesh.rotation.set(node.rotation[0], node.rotation[1], node.rotation[2]);
-    }
-    prevBillboard.current = node.billboard;
-  });
 
   return <primitive object={mesh} />;
 }

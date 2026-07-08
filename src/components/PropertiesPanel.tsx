@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Box3, MathUtils, Mesh, Vector3 } from "three";
-import {
-  useSceneStore,
-  type Vec3,
-  type ImagePlaneNode,
-} from "@/store/sceneStore";
+import { useSceneStore, type Vec3 } from "@/store/sceneStore";
 import { eventBus } from "@/lib/eventBus";
 import { ScrubNumberField } from "@/components/ui/scrub-number-field";
 import { Button } from "@/components/ui/button";
@@ -61,29 +57,6 @@ function Vec3Section({
   );
 }
 
-function ToggleRow({
-  label,
-  value,
-  onToggle,
-}: {
-  label: string;
-  value: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-2">
-      <span className="text-xs text-foreground">{label}</span>
-      <Button
-        variant={value ? "default" : "outline"}
-        size="sm"
-        className="h-6 px-2 text-xs"
-        onClick={onToggle}
-      >
-        {value ? "On" : "Off"}
-      </Button>
-    </div>
-  );
-}
 
 export function PropertiesPanel() {
   const selectedUuid = useSceneStore((s) => s.selectedUuid);
@@ -209,7 +182,6 @@ export function PropertiesPanel() {
   };
 
   const isImagePlane = node.type === "ImagePlane";
-  const ipNode = isImagePlane ? (node as ImagePlaneNode) : null;
 
   const transforms = (
     <>
@@ -248,25 +220,9 @@ export function PropertiesPanel() {
         </p>
         <p className="text-xs text-muted-foreground">{node.type}</p>
       </div>
-      {ipNode ? (
-        <div className="min-h-0 overflow-y-auto p-3 space-y-4">
-          {transforms}
-          <div className="space-y-2">
-            <p className="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
-              Image
-            </p>
-            <ToggleRow
-              label="Billboard"
-              value={ipNode.billboard}
-              onToggle={() =>
-                updateNode(selectedUuid, { billboard: !ipNode.billboard })
-              }
-            />
-          </div>
-        </div>
-      ) : (
-        <div className="min-h-0 overflow-y-auto p-3 space-y-4">
-          {transforms}
+      <div className="min-h-0 overflow-y-auto p-3 space-y-4">
+        {transforms}
+        {!isImagePlane && (
           <Button
             variant="outline"
             size="sm"
@@ -275,8 +231,8 @@ export function PropertiesPanel() {
           >
             Center Pivot
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </aside>
   );
 }

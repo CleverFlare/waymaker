@@ -17,7 +17,6 @@ export interface BaseNode {
 
 export interface ImagePlaneNode extends BaseNode {
   type: "ImagePlane";
-  billboard: boolean;
 }
 
 export type SceneNode = BaseNode | ImagePlaneNode;
@@ -46,7 +45,6 @@ export function createImagePlaneNode(
     position: [0, 0, 0],
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
-    billboard: false,
   };
 }
 
