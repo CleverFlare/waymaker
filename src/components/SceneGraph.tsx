@@ -48,7 +48,7 @@ export function SceneGraph() {
               }
               onClick={() => selectNode(item.getId())}
             >
-              <span className="flex items-center gap-1.5">
+              <span className="flex items-center gap-1.5 min-w-0">
                 {item.isFolder() ? (
                   item.isExpanded() ? (
                     <FolderOpenIcon className="text-muted-foreground pointer-events-none size-3.5 shrink-0" />
@@ -62,7 +62,7 @@ export function SceneGraph() {
                 ) : (
                   <FileIcon className="text-muted-foreground pointer-events-none size-3.5 shrink-0" />
                 )}
-                {item.getItemName()}
+                <span className="truncate">{item.getItemName()}</span>
               </span>
             </TreeItemLabel>
           </TreeItem>

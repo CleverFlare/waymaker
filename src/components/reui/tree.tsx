@@ -166,6 +166,7 @@ function TreeItemLabel<T = any>({
         "py-1.5",
         "px-2",
         "text-sm",
+        "min-w-0 overflow-hidden",
         className,
       )}
       {...props}
@@ -188,8 +189,10 @@ function TreeItemLabel<T = any>({
         ) : (
           <ChevronDownIcon className="text-muted-foreground size-4 in-aria-[expanded=false]:-rotate-90" />
         ))}
-      {children ||
-        (typeof item.getItemName === "function" ? item.getItemName() : null)}
+      <span className="flex-1 min-w-0 truncate">
+        {children ||
+          (typeof item.getItemName === "function" ? item.getItemName() : null)}
+      </span>
     </span>
   );
 }
