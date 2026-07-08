@@ -2,6 +2,8 @@ import { useEffect, useMemo } from "react";
 import { useTexture } from "@react-three/drei";
 import * as THREE from "three";
 import { useSceneStore, createImagePlaneNode } from "@/store/sceneStore";
+import { useBillboard } from "@/hooks/useBillboard";
+import { useSizeAttenuation } from "@/hooks/useSizeAttenuation";
 
 interface ImageInstanceProps {
   id: string;
@@ -47,6 +49,9 @@ export function ImageInstance({ id, url, name }: ImageInstanceProps) {
       (mesh.material as THREE.Material).dispose();
     };
   }, [id, mesh, name]);
+
+  useBillboard(mesh, mesh.uuid);
+  useSizeAttenuation(mesh, mesh.uuid);
 
   return <primitive object={mesh} />;
 }
