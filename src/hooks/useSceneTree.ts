@@ -6,7 +6,7 @@ import {
   createOnDropHandler,
 } from "@headless-tree/core";
 import { useTree } from "@headless-tree/react";
-import { useSceneStore } from "@/store/sceneStore";
+import { useSceneStore, type SceneNode } from "@/store/sceneStore";
 import { useAutoReveal } from "@/hooks/useAutoReveal";
 import { SCENE_ROOT_ID } from "@/lib/scene";
 
@@ -18,8 +18,28 @@ export interface TreeItemData {
 
 type TreeDataMap = Record<string, TreeItemData>;
 
+function nodesStructurallyEqual(
+  a: Record<string, SceneNode>,
+  b: Record<string, SceneNode>,
+): boolean {
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) return false;
+  return aKeys.every((k) => {
+    const an = a[k],
+      bn = b[k];
+    if (!bn) return false;
+    return (
+      an.name === bn.name &&
+      an.type === bn.type &&
+      an.children.length === bn.children.length &&
+      an.children.every((c, i) => c === bn.children[i])
+    );
+  });
+}
+
 export function useSceneTree() {
-  const nodes = useSceneStore((s) => s.nodes);
+  const nodes = useSceneStore((s) => s.nodes, nodesStructurallyEqual);
   const modelRoots = useSceneStore((s) => s.modelRoots);
   const selectedUuid = useSceneStore((s) => s.selectedUuid);
   const selectNode = useSceneStore((s) => s.selectNode);
