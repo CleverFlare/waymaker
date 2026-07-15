@@ -1,12 +1,12 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import electron from "vite-plugin-electron/simple";
 
 export default defineConfig({
   plugins: [
-    react(),
+    svelte(),
     tailwindcss(),
     electron({
       main: {
