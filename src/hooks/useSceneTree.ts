@@ -20,7 +20,8 @@ type TreeDataMap = Record<string, TreeItemData>;
 
 export function useSceneTree() {
   const nodes = useSceneStore((s) => s.nodes);
-  const modelRoots = useSceneStore((s) => s.modelRoots);
+  const sceneRootChildren = useSceneStore((s) => s.sceneRootChildren);
+  const rootUuids = sceneRootChildren.map((e) => e.rootUuid);
   const selectedUuid = useSceneStore((s) => s.selectedUuid);
   const selectNode = useSceneStore((s) => s.selectNode);
   const getObject = useSceneStore((s) => s.getObject);
@@ -28,7 +29,7 @@ export function useSceneTree() {
 
   const treeDataRef = useRef<TreeDataMap>({});
   treeDataRef.current = {
-    [SCENE_ROOT_ID]: { name: "Scene", type: "Scene", children: modelRoots },
+    [SCENE_ROOT_ID]: { name: "Scene", type: "Scene", children: rootUuids },
     ...nodes,
   };
 
@@ -43,7 +44,7 @@ export function useSceneTree() {
     },
     features: [syncDataLoaderFeature, hotkeysCoreFeature, dragAndDropFeature],
     initialState: {
-      expandedItems: [SCENE_ROOT_ID, ...modelRoots],
+      expandedItems: [SCENE_ROOT_ID, ...rootUuids],
     },
     canDrop: () => true,
     onDrop: createOnDropHandler((item, newChildIds) => {
@@ -67,9 +68,9 @@ export function useSceneTree() {
 
   useLayoutEffect(() => {
     tree.rebuildTree();
-  }, [modelRoots, nodes]);
+  }, [sceneRootChildren, nodes]);
 
-  useAutoReveal(tree, selectedUuid, nodes, modelRoots, SCENE_ROOT_ID);
+  useAutoReveal(tree, selectedUuid, nodes, rootUuids, SCENE_ROOT_ID);
 
-  return { tree, treeDataRef, modelRoots, selectedUuid, selectNode };
+  return { tree, treeDataRef, rootUuids, selectedUuid, selectNode };
 }
