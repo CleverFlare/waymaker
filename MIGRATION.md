@@ -5,7 +5,7 @@
 - **Store:** `sceneStore.ts` becomes a Svelte 5 runes module (`.svelte.ts`), exporting `$state` variables and plain action functions. No zustand, no `writable`.
 - **Hooks:** All React hooks become Svelte 5 rune functions in `.svelte.ts` files. Abstraction is kept — hooks are not inlined into components.
 - **Threlte:** All R3F/drei usage is replaced with `@threlte/core` + `@threlte/extras`. `useFrame` → `useTask`. `useThree` → `useThrelte`.
-- **UI primitives:** `@base-ui/react` is replaced by `bits-ui`. Component APIs are similar in shape.
+- **UI primitives:** `@base-ui/react` is replaced by `shadcn-svelte` (which itself wraps `bits-ui`). Use shadcn-svelte components where they exist; drop to raw `bits-ui` primitives only for anything shadcn-svelte doesn't cover.
 - **Tree:** No `@headless-tree/svelte` exists. `tree.tsx` is rewritten against `@headless-tree/core` directly (the framework-agnostic core is already installed).
 - **Panel:** `Panel.tsx` uses `Object.assign` compound components which don't exist in Svelte. It is split into individual `.svelte` files. Its consumers (`DefaultPanel`, `ImagePlanePanel`) are migrated in the same step.
 - **Cleanup:** Each `.tsx` file is deleted in the same step as its `.svelte` replacement is written. No batch cleanup at the end.
@@ -29,7 +29,7 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 **Why first:** Every component and hook reads from the store. Nothing else can be written in Svelte until the store is defined.
 
-- [ ] `src/store/sceneStore.ts` → `src/store/sceneStore.svelte.ts`
+- [x] `src/store/sceneStore.ts` → `src/store/sceneStore.svelte.ts`
   - Replace `create<SceneStore>(...)` with top-level `$state` declarations
   - Actions (`addModel`, `removeModel`, `selectNode`, etc.) become exported plain functions
   - `objectRefs` closure becomes a module-level plain object (non-reactive, same as now)
@@ -41,18 +41,20 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 **Why here:** These are leaf nodes with no internal migration dependencies. Every panel and toolbar component needs them. Unblocking them early opens the entire UI track.
 
-- [ ] `src/components/ui/button.tsx` → `Button.svelte`
-  - Replace `@base-ui/react/button` with `bits-ui` `Button` primitive
+- [x] `src/components/ui/button.tsx` → `Button.svelte`
+  - Replace `@base-ui/react/button` with the shadcn-svelte `Button` component
   - Keep `buttonVariants` CVA definition unchanged
   - Delete `button.tsx`
 
-- [ ] `src/components/ui/tooltip.tsx` → `Tooltip.svelte`
-  - Replace `@base-ui/react/tooltip` with `bits-ui` `Tooltip` primitive
-  - `TooltipProvider`, `Tooltip`, `TooltipTrigger`, `TooltipContent` remain as named exports
+- [x] `src/components/ui/tooltip.tsx` → `tooltip.ts` + `TooltipContent.svelte`
+  - `TooltipProvider`, `Tooltip` (= `Tooltip.Root`), `TooltipTrigger` re-exported from `bits-ui` via `tooltip.ts` barrel
+  - `TooltipContent` is a styled wrapper in `TooltipContent.svelte` that includes the `Tooltip.Arrow`
+  - Animation classes adapted from base-ui `data-[state=delayed-open]` → bits-ui `data-[state=open]`
   - Delete `tooltip.tsx`
 
-- [ ] `src/components/ui/scrub-number-field.tsx` → `ScrubNumberField.svelte`
-  - Replace `@base-ui/react/number-field` with `bits-ui` `NumberField` primitive
+- [x] `src/components/ui/scrub-number-field.tsx` → `ScrubNumberField.svelte`
+  - Replace `@base-ui/react/number-field` with the `NumberField` component found in the ui components inside the components directory.
+  - `onCommit` mapped to `onValueCommitted` (handles both scrub-end and blur in one callback)
   - Props interface is unchanged
   - Delete `scrub-number-field.tsx`
 
