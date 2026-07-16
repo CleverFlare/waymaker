@@ -61,6 +61,9 @@ interface SceneStore {
   modelRoots: string[];
   modelIdToRoot: Record<string, string>;
   selectedUuid: string | null;
+
+  structureVersion: number;
+
   activeTool: Tool;
   setActiveTool: (tool: Tool) => void;
   addModel: (
@@ -85,6 +88,9 @@ export const useSceneStore = create<SceneStore>((set, get) => {
     modelRoots: [],
     modelIdToRoot: {},
     selectedUuid: null,
+
+    structureVersion: 0,
+
     activeTool: "select",
     setActiveTool: (tool) => set({ activeTool: tool }),
 
@@ -93,6 +99,7 @@ export const useSceneStore = create<SceneStore>((set, get) => {
         nodes: { ...state.nodes, ...newNodes },
         modelRoots: [...state.modelRoots, rootUuid],
         modelIdToRoot: { ...state.modelIdToRoot, [modelId]: rootUuid },
+        structureVersion: state.structureVersion + 1,
       })),
 
     removeModel: (modelId) => {
@@ -119,6 +126,7 @@ export const useSceneStore = create<SceneStore>((set, get) => {
           selectedUuid: toRemove.has(state.selectedUuid ?? "")
             ? null
             : state.selectedUuid,
+          structureVersion: state.structureVersion + 1,
         };
       });
     },
@@ -135,7 +143,10 @@ export const useSceneStore = create<SceneStore>((set, get) => {
 
     reparentNodes: (parentId, newChildIds) => {
       if (parentId === SCENE_ROOT_ID) {
-        set({ modelRoots: newChildIds });
+        set((state) => ({
+          modelRoots: newChildIds,
+          structureVersion: state.structureVersion + 1,
+        }));
       } else {
         set((state) => {
           const node = state.nodes[parentId];
@@ -145,6 +156,7 @@ export const useSceneStore = create<SceneStore>((set, get) => {
               ...state.nodes,
               [parentId]: { ...node, children: newChildIds },
             },
+            structureVersion: state.structureVersion + 1,
           };
         });
       }
@@ -154,7 +166,10 @@ export const useSceneStore = create<SceneStore>((set, get) => {
       set((state) => {
         const node = state.nodes[uuid];
         if (!node) return state;
-        return { nodes: { ...state.nodes, [uuid]: { ...node, ...patch } } };
+        return {
+          nodes: { ...state.nodes, [uuid]: { ...node, ...patch } },
+          structureVersion: state.structureVersion + 1,
+        };
       }),
   };
 });

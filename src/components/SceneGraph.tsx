@@ -17,8 +17,7 @@ const MESH_TYPES = new Set(["Mesh", "SkinnedMesh"]);
 const IMAGE_TYPES = new Set(["ImagePlane"]);
 
 export function SceneGraph() {
-  const { tree, treeDataRef, modelRoots, selectedUuid, selectNode } =
-    useSceneTree();
+  const { tree, modelRoots, selectedUuid, selectNode } = useSceneTree();
 
   if (modelRoots.length === 0) {
     return (
@@ -31,7 +30,7 @@ export function SceneGraph() {
   return (
     <Tree tree={tree} indent={16} toggleIconType="chevron" className="p-2">
       {tree.getItems().map((item) => {
-        const data = treeDataRef.current[item.getId()];
+        const data = item.getItemData();
         const isSelected = item.getId() === selectedUuid;
         const isMesh = MESH_TYPES.has(data?.type ?? "");
         const isImage = IMAGE_TYPES.has(data?.type ?? "");
