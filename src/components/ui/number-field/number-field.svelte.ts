@@ -319,10 +319,9 @@ export class NumberFieldRootState {
     return this.stepValue;
   }
 
-  private commit(reason: ChangeReason, event?: Event) {
+  private commit(_reason: ChangeReason, _event?: Event) {
     this.opts.onValueCommitted.current(
       this.#lastChangedValue ?? this.opts.value.current,
-      event as never,
     );
   }
 
@@ -356,7 +355,7 @@ export class NumberFieldRootState {
         (unvalidatedValue !== currentValue || !this.#allowInputSync));
 
     if (shouldFireChange) {
-      this.opts.onValueChange.current(validatedValue, event as never);
+      this.opts.onValueChange.current(validatedValue);
       this.opts.value.current = validatedValue;
     }
 
