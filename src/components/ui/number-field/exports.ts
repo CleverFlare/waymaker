@@ -7,11 +7,11 @@ export { default as ScrubArea } from "./components/number-field-scrub-area.svelt
 export { default as ScrubAreaCursor } from "./components/number-field-scrub-area-cursor.svelte";
 
 export type {
-	NumberFieldRootProps as RootProps,
-	NumberFieldGroupProps as GroupProps,
-	NumberFieldInputProps as InputProps,
-	NumberFieldIncrementProps as IncrementProps,
-	NumberFieldDecrementProps as DecrementProps,
-	NumberFieldScrubAreaProps as ScrubAreaProps,
-	NumberFieldScrubAreaCursorProps as ScrubAreaCursorProps,
+  NumberFieldRootProps as RootProps,
+  NumberFieldGroupProps as GroupProps,
+  NumberFieldInputProps as InputProps,
+  NumberFieldIncrementProps as IncrementProps,
+  NumberFieldDecrementProps as DecrementProps,
+  NumberFieldScrubAreaProps as ScrubAreaProps,
+  NumberFieldScrubAreaCursorProps as ScrubAreaCursorProps,
 } from "./types.js";
