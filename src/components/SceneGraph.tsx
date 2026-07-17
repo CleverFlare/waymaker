@@ -17,10 +17,10 @@ const MESH_TYPES = new Set(["Mesh", "SkinnedMesh"]);
 const IMAGE_TYPES = new Set(["ImagePlane"]);
 
 export function SceneGraph() {
-  const { tree, treeDataRef, rootUuids, selectedUuid, selectNode } =
+  const { tree, treeDataRef, sceneRootChildren, selectedUuid, selectNode } =
     useSceneTree();
 
-  if (rootUuids.length === 0) {
+  if (sceneRootChildren.length === 0) {
     return (
       <p className="px-4 py-6 text-center text-xs text-muted-foreground">
         Import a GLB or GLTF to see the scene graph

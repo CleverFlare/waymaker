@@ -6,15 +6,14 @@ import { useBillboard } from "@/hooks/useBillboard";
 import { useSizeAttenuation } from "@/hooks/useSizeAttenuation";
 
 interface ImageInstanceProps {
-  id: string;
   url: string;
   name: string;
 }
 
-export function ImageInstance({ id, url, name }: ImageInstanceProps) {
+export function ImageInstance({ url, name }: ImageInstanceProps) {
   const texture = useTexture(url);
   const addModel = useSceneStore((s) => s.addModel);
-  const removeModel = useSceneStore((s) => s.removeModel);
+  const removeNode = useSceneStore((s) => s.removeNode);
   const registerObject = useSceneStore((s) => s.registerObject);
   const unregisterObject = useSceneStore((s) => s.unregisterObject);
 
@@ -36,19 +35,15 @@ export function ImageInstance({ id, url, name }: ImageInstanceProps) {
 
   useEffect(() => {
     mesh.name = name;
-    addModel(
-      id,
-      { [mesh.uuid]: createImagePlaneNode(mesh.uuid, name) },
-      mesh.uuid,
-    );
+    addModel({ [mesh.uuid]: createImagePlaneNode(mesh.uuid, name) }, mesh.uuid);
     registerObject(mesh.uuid, mesh);
     return () => {
-      removeModel(id);
+      removeNode(mesh.uuid);
       unregisterObject(mesh.uuid);
       mesh.geometry.dispose();
       (mesh.material as THREE.Material).dispose();
     };
-  }, [id, mesh, name]);
+  }, [mesh, name]);
 
   useBillboard(mesh, mesh.uuid);
   useSizeAttenuation(mesh, mesh.uuid);

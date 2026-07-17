@@ -57,7 +57,7 @@ export function createImagePlaneNode(
 
 // Reactive state
 export let nodes = $state<Record<string, SceneNode>>({});
-export let sceneRootChildren = $state<{ id: string; rootUuid: string }[]>([]);
+export let sceneRootChildren = $state<string[]>([]);
 export let selectedUuid = $state<string | null>(null);
 export let activeTool = $state<Tool>("select");
 
@@ -69,19 +69,14 @@ export function setActiveTool(tool: Tool) {
 }
 
 export function addModel(
-  modelId: string,
   newNodes: Record<string, SceneNode>,
   rootUuid: string,
 ) {
   nodes = { ...nodes, ...newNodes };
-  sceneRootChildren = [...sceneRootChildren, { id: modelId, rootUuid }];
+  sceneRootChildren = [...sceneRootChildren, rootUuid];
 }
 
-export function removeModel(modelId: string) {
-  const entry = sceneRootChildren.find((e) => e.id === modelId);
-  if (!entry) return;
-  const { rootUuid } = entry;
-
+export function removeNode(rootUuid: string) {
   const toRemove = new Set<string>();
   const queue = [rootUuid];
   while (queue.length) {
@@ -94,7 +89,7 @@ export function removeModel(modelId: string) {
   toRemove.forEach((uuid) => delete newNodes[uuid]);
 
   nodes = newNodes;
-  sceneRootChildren = sceneRootChildren.filter((e) => e.id !== modelId);
+  sceneRootChildren = sceneRootChildren.filter((uuid) => uuid !== rootUuid);
   if (toRemove.has(selectedUuid ?? "")) selectedUuid = null;
 }
 
@@ -116,8 +111,7 @@ export function getObject(uuid: string): Object3D | undefined {
 
 export function reparentNodes(parentId: string, newChildIds: string[]) {
   if (parentId === SCENE_ROOT_ID) {
-    const byUuid = Object.fromEntries(sceneRootChildren.map((e) => [e.rootUuid, e]));
-    sceneRootChildren = newChildIds.map((uuid) => byUuid[uuid]);
+    sceneRootChildren = newChildIds;
   } else {
     const node = nodes[parentId];
     if (!node) return;

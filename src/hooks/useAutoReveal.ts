@@ -5,14 +5,14 @@ export function useAutoReveal(
   tree: any,
   selectedUuid: string | null,
   nodes: Record<string, SceneNode>,
-  rootUuids: string[],
+  sceneRootChildren: string[],
   rootId: string,
 ) {
   useEffect(() => {
     if (!selectedUuid) return;
 
     const parentMap: Record<string, string> = {};
-    rootUuids.forEach((id) => {
+    sceneRootChildren.forEach((id) => {
       parentMap[id] = rootId;
     });
     Object.values(nodes).forEach((node) => {
