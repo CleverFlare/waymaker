@@ -4,6 +4,17 @@ import { SCENE_ROOT_ID } from "@/lib/scene";
 export type Vec3 = [number, number, number];
 export type Tool = "select" | "move" | "rotate" | "resize";
 
+export interface ImportedModel {
+  id: string;
+  url: string;
+}
+
+export interface ImportedImage {
+  id: string;
+  url: string;
+  name: string;
+}
+
 export interface BaseNode {
   uuid: string;
   name: string;
@@ -60,12 +71,22 @@ export let nodes = $state<Record<string, SceneNode>>({});
 export let sceneRootChildren = $state<string[]>([]);
 export let selectedUuid = $state<string | null>(null);
 export let activeTool = $state<Tool>("select");
+export let importedModels = $state<ImportedModel[]>([]);
+export let importedImages = $state<ImportedImage[]>([]);
 
 // Non-reactive Object3D registry (same as before)
 const objectRefs: Record<string, Object3D> = {};
 
 export function setActiveTool(tool: Tool) {
   activeTool = tool;
+}
+
+export function addImportedModel(url: string) {
+  importedModels = [...importedModels, { id: crypto.randomUUID(), url }];
+}
+
+export function addImportedImage(url: string, name: string) {
+  importedImages = [...importedImages, { id: crypto.randomUUID(), url, name }];
 }
 
 export function addModel(

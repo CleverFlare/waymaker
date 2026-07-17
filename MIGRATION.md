@@ -3,7 +3,7 @@
 ## Ground rules
 
 - **Store:** `sceneStore.ts` becomes a Svelte 5 runes module (`.svelte.ts`), exporting `$state` variables and plain action functions. No zustand, no `writable`.
-- **Hooks:** All React hooks become Svelte 5 rune functions in `.svelte.ts` files. Abstraction is kept — hooks are not inlined into components.
+- **Hooks:** React hooks are not migrated 1:1. Each hook is assessed: if it only manipulates store state it dissolves into its consumer; if it holds instance-scoped lifecycle it becomes a plain function in `src/lib/`; only `useSceneTree` retains a `.svelte.ts` file because it owns a headless-tree instance with a `$effect`-managed rebuild cycle.
 - **Threlte:** All R3F/drei usage is replaced with `@threlte/core` + `@threlte/extras`. `useFrame` → `useTask`. `useThree` → `useThrelte`.
 - **UI primitives:** `@base-ui/react` is replaced by `shadcn-svelte` (which itself wraps `bits-ui`). Use shadcn-svelte components where they exist; drop to raw `bits-ui` primitives only for anything shadcn-svelte doesn't cover.
 - **Tree:** No `@headless-tree/svelte` exists. `tree.tsx` is rewritten against `@headless-tree/core` directly (the framework-agnostic core is already installed).
@@ -18,10 +18,11 @@
 These are already framework-agnostic and contain no React or R3F imports:
 
 - `src/lib/scene.ts` — pure Three.js utilities
-- `src/lib/eventBus.ts` — mitt event bus
 - `src/lib/utils.ts` — `cn()` helper
 - `src/lib/gizmoInteracting.ts` — plain mutable object
 - `src/electron.d.ts` — type declaration only
+
+`src/lib/eventBus.ts` is **deleted** in Phase 5 — it is no longer needed (see Phase 5 notes).
 
 ---
 
@@ -33,6 +34,7 @@ These are already framework-agnostic and contain no React or R3F imports:
   - Replace `create<SceneStore>(...)` with top-level `$state` declarations
   - Actions (`addModel`, `removeModel`, `selectNode`, etc.) become exported plain functions
   - `objectRefs` closure becomes a module-level plain object (non-reactive, same as now)
+  - Add `importedModels` and `importedImages` as `$state` arrays (absorbed from `useImportedFiles` — see Phase 4)
   - Delete `sceneStore.ts`
 
 ---
@@ -73,18 +75,28 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 ---
 
-## Phase 4 — Simple Hooks
+## Phase 4 — Simple Utilities
 
-**Why here:** These two hooks have no dependencies on other migrated files. `useDragGuard` is needed by `SelectionManager` (3D track); `useImportedFiles` is needed by `App`. Both can be written now.
+**Why here:** These two hooks have no dependencies on other migrated files. `useDragGuard` is needed by `SelectionManager` (3D track); `useImportedFiles` is needed by `App`. Both can be resolved now.
 
-- [ ] `src/hooks/useDragGuard.ts` → `useDragGuard.svelte.ts`
-  - `useRef` + `useCallback` → plain `$state` and closures
-  - Returns `{ onPointerDown, wasDrag }` — interface unchanged
+- [ ] `src/hooks/useDragGuard.ts` → **`src/lib/dragGuard.ts`** (plain factory function)
+  - `useRef` + `useCallback` were React ceremony for a plain mutable closure — replace with:
+    ```ts
+    export function createDragGuard(thresholdPx = 5) {
+      let anchor = { x: 0, y: 0 };
+      return {
+        onPointerDown: (e) => { anchor = { x: e.clientX, y: e.clientY }; },
+        wasDrag: (e) => Math.hypot(e.clientX - anchor.x, e.clientY - anchor.y) > thresholdPx,
+      };
+    }
+    ```
+  - No runes, no `.svelte.ts` — pure TypeScript
+  - Delete `useDragGuard.ts`
 
-- [ ] `src/hooks/useImportedFiles.ts` → `useImportedFiles.svelte.ts`
-  - `useState` + `useEffect` → `$state` + `$effect`
-  - `window.electronAPI.onImportFiles` call is unchanged
-  - Returns `{ models, images }` — interface unchanged
+- [ ] `src/hooks/useImportedFiles.ts` → **dissolved**: state into store, subscription into `App.svelte`
+  - `importedModels` and `importedImages` move to `sceneStore.svelte.ts` as `$state` arrays (see Phase 1)
+  - The `window.electronAPI.onImportFiles` subscription becomes a `$effect` with cleanup directly in `App.svelte`
+  - Delete `useImportedFiles.ts`
 
 ---
 
@@ -92,15 +104,21 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 **Why grouped:** `Panel.tsx` and its two consumers (`DefaultPanel`, `ImagePlanePanel`) are tightly coupled. Migrating Panel without its consumers leaves dead JSX imports. The panel hooks only serve panel components and belong in this step.
 
-- [ ] `src/hooks/useNodeTransform.ts` → `useNodeTransform.svelte.ts`
-  - `useState` + `useEffect` + `useRef` → `$state` + `$effect`
-  - Store reads via imported rune module (Phase 1) instead of `useSceneStore(...)`
-  - Returns same interface: `{ pos, rot, scale, handlePos, handleRot, handleScale, commitPos, commitRot, commitScale, handleCenterPivot }`
+- [ ] `src/hooks/useNodeTransform.ts` → **dissolved**: `centerPivot` into `src/lib/nodeTransform.ts`; everything else into the panels directly
+  - The live/commit split is dropped entirely (was a React performance escape hatch — not needed in Svelte)
+  - Drop the `eventBus.on("transform")` listener
+  - `pos`/`rot`/`scale` are read directly from the store node; rotation degree conversion is a one-line `$derived` in each panel
+  - `setPos/setRot/setScale` are one-liner calls to `updateNode` written inline in each panel
+  - `centerPivot(uuid)` — the only non-trivial piece — becomes an exported function in `src/lib/nodeTransform.ts`
+  - Delete `useNodeTransform.ts`
 
-- [ ] `src/hooks/useImagePlaneMode.ts` → `useImagePlaneMode.svelte.ts`
-  - Same pattern: `$state` + `$effect`, store reads via rune module
-  - `eventBus` usage unchanged (mitt is framework-agnostic)
-  - Returns same interface
+- [ ] `src/hooks/useImagePlaneMode.ts` → **dissolved into `ImagePlanePanel.svelte`**
+  - Single consumer; after dropping the event bus the entire hook is store reads + `updateNode` calls
+  - Drop all `eventBus.emit/on("imagePlane")` — `ImagePlanePanel.svelte` calls `updateNode` directly on every change
+  - `toggleBillboard` and `toggleSizeAttenuation` inline as one-liners
+  - `cameraRot` display conversion is a `$derived` in the panel
+  - Delete `useImagePlaneMode.ts`
+  - Delete `src/lib/eventBus.ts` in this step (last consumer removed)
 
 - [ ] `src/components/panels/Panel.tsx` → split into individual `.svelte` files
   - `PanelRoot` → `Panel.svelte`
@@ -114,12 +132,14 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 - [ ] `src/components/panels/DefaultPanel.tsx` → `DefaultPanel.svelte`
   - Replace `Panel.*` compound imports with individual `.svelte` component imports
-  - Uses `useNodeTransform` and `Button`
+  - Import `selectedUuid`, `nodes`, `updateNode` from store directly; import `centerPivot` from `src/lib/nodeTransform.ts`
+  - `$derived` for degree-converted rotation display
   - Delete `DefaultPanel.tsx`
 
 - [ ] `src/components/panels/ImagePlanePanel.tsx` → `ImagePlanePanel.svelte`
   - Replace `Panel.*` compound imports with individual `.svelte` component imports
-  - Uses `useNodeTransform`, `useImagePlaneMode`, `Button`
+  - Import `selectedUuid`, `nodes`, `updateNode` from store directly; import `centerPivot` from `src/lib/nodeTransform.ts`
+  - All `useNodeTransform` and `useImagePlaneMode` logic is inline — no hook imports
   - Delete `ImagePlanePanel.tsx`
 
 - [ ] `src/components/panels/PanelRouter.tsx` → `PanelRouter.svelte`
@@ -145,16 +165,18 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 **Why here:** `SceneGraph` depends on the Tree primitive (Phase 3) and `useSceneTree`. `useAutoReveal` is only used by `useSceneTree` — they migrate together.
 
-- [ ] `src/hooks/useAutoReveal.ts` → `useAutoReveal.svelte.ts`
-  - `useEffect` → `$effect`
-  - Calls `tree.getItemInstance(id).expand()` — `@headless-tree/core` API is unchanged
+- [ ] `src/hooks/useAutoReveal.ts` → **dissolved into `useSceneTree.svelte.ts`** as a local helper function
+  - No state, no lifecycle of its own — it is pure side-effect logic called inside a `$effect`
+  - The parent-map walk and `expand()` calls become a plain function defined in the same file
+  - Delete `useAutoReveal.ts`
 
-- [ ] `src/hooks/useSceneTree.ts` → `useSceneTree.svelte.ts`
-  - Replace `useTree` from `@headless-tree/react` with direct `@headless-tree/core` tree construction
-  - `useLayoutEffect` → `$effect`
-  - `useRef` → plain variable or `$state`
+- [ ] `src/hooks/useSceneTree.ts` → **`src/hooks/useSceneTree.svelte.ts`** (only hook file that survives)
+  - Replace `useTree` from `@headless-tree/react` with `createTree` from `@headless-tree/core`
+  - `useLayoutEffect` → `$effect` for `tree.rebuildTree()` when `nodes`/`sceneRootChildren` change
+  - `treeDataRef` becomes a plain variable (not reactive — updated synchronously before each rebuild)
+  - Auto-reveal and scroll logic from `useAutoReveal` folds into the same `$effect` or a sibling `$effect`
   - Store reads via rune module
-  - Returns same interface: `{ tree, treeDataRef, modelRoots, selectedUuid, selectNode }`
+  - Returns same interface: `{ tree, treeDataRef, sceneRootChildren, selectedUuid, selectNode }`
 
 - [ ] `src/components/SceneGraph.tsx` → `SceneGraph.svelte`
   - Uses `Tree`, `TreeItem`, `TreeItemLabel`, `TreeDragLine` from Phase 3
@@ -164,31 +186,9 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 ---
 
-## Phase 8 — Threlte Hooks
+## Phase 8 — Scene Components
 
-**Why here:** These hooks depend on Threlte's task system (`useTask`) and must be inside a Threlte `<Canvas>` context. They are consumed exclusively by scene components (Phase 9) so they block that phase.
-
-- [ ] `src/hooks/useBillboard.ts` → `useBillboard.svelte.ts`
-  - `useFrame` → `useTask` from `@threlte/core`
-  - `useEffect` + `useRef` → `$effect` + plain variable
-  - `useSceneStore.getState()` → direct import from rune module
-
-- [ ] `src/hooks/useSizeAttenuation.ts` → `useSizeAttenuation.svelte.ts`
-  - Same pattern as `useBillboard`
-
-- [ ] `src/hooks/useBoxHelper.ts` → `useBoxHelper.svelte.ts`
-  - `useState` + `useEffect` + `useFrame` → `$state` + `$effect` + `useTask`
-  - Returns `BoxHelper | null` — interface unchanged
-
-- [ ] `src/hooks/usePivotSprite.ts` → `usePivotSprite.svelte.ts`
-  - `useState` + `useEffect` + `useFrame` → `$state` + `$effect` + `useTask`
-  - Returns `Sprite | null` — interface unchanged
-
----
-
-## Phase 9 — Scene Components
-
-**Why last in 3D track:** All scene components must live inside a Threlte `<Canvas>`, so they require Threlte context. They depend on Threlte hooks (Phase 8) and `useDragGuard` (Phase 4).
+**Why last in 3D track:** All scene components must live inside a Threlte `<Canvas>`, so they require Threlte context. They depend on `createDragGuard` (Phase 4) and the store (Phase 1). The Threlte hook files (`useBillboard`, `useSizeAttenuation`, `useBoxHelper`, `usePivotSprite`) are not migrated as separate files — their logic is inlined directly into the single component that consumes each one.
 
 - [ ] `src/components/scene/SceneRegistrar.tsx` → `SceneRegistrar.svelte`
   - `useThree((s) => s.scene)` → `useThrelte().scene` from `@threlte/core`
@@ -197,7 +197,9 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 - [ ] `src/components/scene/SelectionManager.tsx` → `SelectionManager.svelte`
   - `useThree()` → `useThrelte()` from `@threlte/core`
-  - Uses `useDragGuard` (Phase 4), `useBoxHelper`, `usePivotSprite` (Phase 8)
+  - `useDragGuard(5)` → `createDragGuard(5)` from `src/lib/dragGuard.ts`
+  - `useBoxHelper`: inline as `$state` + `$effect` (create/configure/cleanup `BoxHelper`) + `useTask` (call `.update()` each frame); delete `useBoxHelper.ts`
+  - `usePivotSprite`: inline as `$state` + `$effect` (load texture, create `Sprite`, dispose on cleanup) + `useTask` (sync world position); delete `usePivotSprite.ts`
   - `<primitive object={...} />` → `<T is={...} />` from `@threlte/core`
   - Delete `SelectionManager.tsx`
 
@@ -216,15 +218,13 @@ These are already framework-agnostic and contain no React or R3F imports:
 - [ ] `src/components/scene/ImageInstance.tsx` → `ImageInstance.svelte`
   - `useTexture` from drei → `useTexture` from `@threlte/extras`
   - `useMemo` → plain variable (textures are stable per `url` prop)
-  - Uses `useBillboard`, `useSizeAttenuation` (Phase 8)
+  - `useBillboard`: inline as a `useTask` block — read `nodes[uuid]` from store directly each frame, update `mesh.quaternion` against `camera.quaternion`; delete `useBillboard.ts`
+  - `useSizeAttenuation`: inline as a `useTask` block — read `nodes[uuid]` from store directly each frame, compute screen-space scale factor; delete `useSizeAttenuation.ts`
   - `<primitive object={mesh} />` → `<T is={mesh} />`
   - Delete `ImageInstance.tsx`
 
-- [ ] `src/components/scene/InfiniteGrid.tsx` → `InfiniteGrid.svelte`
-  - `useFrame` → `useTask` from `@threlte/core`
-  - `useMemo` → `$derived` for material construction
-  - `<mesh ref={...}>` → `<T.Mesh bind:ref={...}>` from `@threlte/core`
-  - Three.js TSL/WebGPU material logic is unchanged
+- [ ] `src/components/scene/InfiniteGrid.tsx` → **replaced by `<Grid>` from `@threlte/extras`**
+  - Drop the custom TSL/WebGPU implementation entirely; use `<Grid>` from `@threlte/extras` instead
   - Delete `InfiniteGrid.tsx`
 
 ---
@@ -236,7 +236,7 @@ These are already framework-agnostic and contain no React or R3F imports:
 - [ ] `src/App.svelte` (already exists as empty stub — fill it in)
   - Replace `<Canvas>` from R3F with `<Canvas>` from `@threlte/core`
   - Replace `<CameraControls>` + `<Environment>` from drei with `@threlte/extras` equivalents
-  - Replace `useImportedFiles()` call (Phase 4)
+  - Add `$effect` with cleanup for `window.electronAPI.onImportFiles` — pushes to `importedModels`/`importedImages` in the store (replaces the dissolved `useImportedFiles` hook)
   - Compose all migrated scene and UI components
   - `<TooltipProvider>` wrapper — use bits-ui equivalent if needed
   - Delete `App.tsx`
