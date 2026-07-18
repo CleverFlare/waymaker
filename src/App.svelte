@@ -16,7 +16,6 @@
     addImportedModel,
     addImportedImage,
   } from "@/store/sceneStore.svelte";
-    import { WebGPURenderer } from "three/webgpu";
 
   // Absorbed from the dissolved useImportedFiles hook (Phase 4)
   const IMAGE_EXT = /\.(png|jpe?g|webp)$/i;
