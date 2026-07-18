@@ -4,7 +4,7 @@
   import { T, useThrelte, useTask } from "@threlte/core";
   import { useTexture } from "@threlte/extras";
   import {
-    nodes,
+    sceneStore,
     addModel,
     removeNode,
     registerObject,
@@ -69,7 +69,7 @@
 
   useTask(() => {
     if (!mesh) return;
-    const node = nodes[mesh.uuid] as ImagePlaneNode | undefined;
+    const node = sceneStore.nodes[mesh.uuid] as ImagePlaneNode | undefined;
     if (!node || node.type !== "ImagePlane") return;
 
     const cam = camera.current;

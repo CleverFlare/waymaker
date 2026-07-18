@@ -7,7 +7,7 @@
     TooltipTrigger,
     TooltipContent,
   } from "@/components/ui/tooltip";
-  import { activeTool, setActiveTool } from "@/store/sceneStore.svelte";
+  import { sceneStore, setActiveTool } from "@/store/sceneStore.svelte";
   import type { Tool } from "@/store/sceneStore.svelte";
 
   const tools: { id: Tool; label: string; icon: Component }[] = [
@@ -22,8 +22,8 @@
   {#each tools as { id, label, icon }}
     <Tooltip>
       <TooltipTrigger
-        class={buttonVariants({ variant: activeTool === id ? "default" : "outline", size: "icon-lg" })}
-        aria-pressed={activeTool === id}
+        class={buttonVariants({ variant: sceneStore.activeTool === id ? "default" : "outline", size: "icon-lg" })}
+        aria-pressed={sceneStore.activeTool === id}
         onclick={() => setActiveTool(id)}
       >
         <svelte:component this={icon} />

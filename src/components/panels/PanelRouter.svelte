@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { selectedUuid, nodes } from "@/store/sceneStore.svelte";
+  import { sceneStore } from "@/store/sceneStore.svelte";
   import type { ImagePlaneNode } from "@/store/sceneStore.svelte";
   import DefaultPanel from "./DefaultPanel.svelte";
   import ImagePlanePanel from "./ImagePlanePanel.svelte";
 
-  const node = $derived(selectedUuid ? (nodes[selectedUuid] ?? null) : null);
+  const node = $derived(sceneStore.selectedUuid ? (sceneStore.nodes[sceneStore.selectedUuid] ?? null) : null);
 </script>
 
 {#if node}

@@ -12,8 +12,7 @@
   import ModelInstance from "@/components/scene/ModelInstance.svelte";
   import ImageInstance from "@/components/scene/ImageInstance.svelte";
   import {
-    importedModels,
-    importedImages,
+    sceneStore,
     addImportedModel,
     addImportedImage,
   } from "@/store/sceneStore.svelte";
@@ -73,10 +72,10 @@
         gridSize={240}
       />
 
-      {#each importedModels as { id, url } (id)}
+      {#each sceneStore.importedModels as { id, url } (id)}
         <ModelInstance {url} />
       {/each}
-      {#each importedImages as img (img.id)}
+      {#each sceneStore.importedImages as img (img.id)}
         <ImageInstance url={img.url} name={img.name} />
       {/each}
     </Canvas>

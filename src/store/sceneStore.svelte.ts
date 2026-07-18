@@ -66,35 +66,36 @@ export function createImagePlaneNode(
   };
 }
 
-// Reactive state
-export let nodes = $state<Record<string, SceneNode>>({});
-export let sceneRootChildren = $state<string[]>([]);
-export let selectedUuid = $state<string | null>(null);
-export let activeTool = $state<Tool>("select");
-export let importedModels = $state<ImportedModel[]>([]);
-export let importedImages = $state<ImportedImage[]>([]);
+export const sceneStore = $state({
+  nodes: {} as Record<string, SceneNode>,
+  sceneRootChildren: [] as string[],
+  selectedUuid: null as string | null,
+  activeTool: "select" as Tool,
+  importedModels: [] as ImportedModel[],
+  importedImages: [] as ImportedImage[],
+});
 
 // Non-reactive Object3D registry (same as before)
 const objectRefs: Record<string, Object3D> = {};
 
 export function setActiveTool(tool: Tool) {
-  activeTool = tool;
+  sceneStore.activeTool = tool;
 }
 
 export function addImportedModel(url: string) {
-  importedModels = [...importedModels, { id: crypto.randomUUID(), url }];
+  sceneStore.importedModels = [...sceneStore.importedModels, { id: crypto.randomUUID(), url }];
 }
 
 export function addImportedImage(url: string, name: string) {
-  importedImages = [...importedImages, { id: crypto.randomUUID(), url, name }];
+  sceneStore.importedImages = [...sceneStore.importedImages, { id: crypto.randomUUID(), url, name }];
 }
 
 export function addModel(
   newNodes: Record<string, SceneNode>,
   rootUuid: string,
 ) {
-  nodes = { ...nodes, ...newNodes };
-  sceneRootChildren = [...sceneRootChildren, rootUuid];
+  sceneStore.nodes = { ...sceneStore.nodes, ...newNodes };
+  sceneStore.sceneRootChildren = [...sceneStore.sceneRootChildren, rootUuid];
 }
 
 export function removeNode(rootUuid: string) {
@@ -103,19 +104,19 @@ export function removeNode(rootUuid: string) {
   while (queue.length) {
     const uuid = queue.shift()!;
     toRemove.add(uuid);
-    nodes[uuid]?.children.forEach((c) => queue.push(c));
+    sceneStore.nodes[uuid]?.children.forEach((c) => queue.push(c));
   }
 
-  const newNodes = { ...nodes };
+  const newNodes = { ...sceneStore.nodes };
   toRemove.forEach((uuid) => delete newNodes[uuid]);
 
-  nodes = newNodes;
-  sceneRootChildren = sceneRootChildren.filter((uuid) => uuid !== rootUuid);
-  if (toRemove.has(selectedUuid ?? "")) selectedUuid = null;
+  sceneStore.nodes = newNodes;
+  sceneStore.sceneRootChildren = sceneStore.sceneRootChildren.filter((uuid) => uuid !== rootUuid);
+  if (toRemove.has(sceneStore.selectedUuid ?? "")) sceneStore.selectedUuid = null;
 }
 
 export function selectNode(uuid: string | null) {
-  selectedUuid = uuid;
+  sceneStore.selectedUuid = uuid;
 }
 
 export function registerObject(uuid: string, obj: Object3D) {
@@ -132,16 +133,16 @@ export function getObject(uuid: string): Object3D | undefined {
 
 export function reparentNodes(parentId: string, newChildIds: string[]) {
   if (parentId === SCENE_ROOT_ID) {
-    sceneRootChildren = newChildIds;
+    sceneStore.sceneRootChildren = newChildIds;
   } else {
-    const node = nodes[parentId];
+    const node = sceneStore.nodes[parentId];
     if (!node) return;
-    nodes = { ...nodes, [parentId]: { ...node, children: newChildIds } };
+    sceneStore.nodes = { ...sceneStore.nodes, [parentId]: { ...node, children: newChildIds } };
   }
 }
 
 export function updateNode(uuid: string, patch: Partial<SceneNode>) {
-  const node = nodes[uuid];
+  const node = sceneStore.nodes[uuid];
   if (!node) return;
-  nodes = { ...nodes, [uuid]: { ...node, ...patch } };
+  sceneStore.nodes = { ...sceneStore.nodes, [uuid]: { ...node, ...patch } };
 }

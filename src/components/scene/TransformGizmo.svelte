@@ -3,9 +3,7 @@
   import { TransformControls } from "@threlte/extras";
   import { Euler, MathUtils, PerspectiveCamera, Quaternion } from "three";
   import {
-    selectedUuid,
-    activeTool,
-    nodes,
+    sceneStore,
     getObject,
     updateNode,
   } from "@/store/sceneStore.svelte";
@@ -23,12 +21,12 @@
 
   const { camera } = useThrelte();
 
-  const node = $derived(selectedUuid ? (nodes[selectedUuid] ?? null) : null);
-  const object = $derived(selectedUuid ? (getObject(selectedUuid) ?? null) : null);
+  const node = $derived(sceneStore.selectedUuid ? (sceneStore.nodes[sceneStore.selectedUuid] ?? null) : null);
+  const object = $derived(sceneStore.selectedUuid ? (getObject(sceneStore.selectedUuid) ?? null) : null);
   const ipNode = $derived(node?.type === "ImagePlane" ? (node as ImagePlaneNode) : null);
   const mode = $derived(
-    activeTool !== "select"
-      ? TOOL_TO_MODE[activeTool as keyof typeof TOOL_TO_MODE]
+    sceneStore.activeTool !== "select"
+      ? TOOL_TO_MODE[sceneStore.activeTool as keyof typeof TOOL_TO_MODE]
       : null,
   );
 
@@ -50,17 +48,17 @@
   // updates and so scene components (billboard/sizeAttenuation) pick up changes
   // each frame via their useTask reads.
   const handleChange = () => {
-    if (!selectedUuid || !object) return;
-    if (ipNode?.billboard && activeTool === "rotate") {
-      updateNode(selectedUuid, {
+    if (!sceneStore.selectedUuid || !object) return;
+    if (ipNode?.billboard && sceneStore.activeTool === "rotate") {
+      updateNode(sceneStore.selectedUuid, {
         cameraRotation: extractCameraRot(),
       } as Partial<SceneNode>);
-    } else if (ipNode?.sizeAttenuation && activeTool === "resize") {
-      updateNode(selectedUuid, {
+    } else if (ipNode?.sizeAttenuation && sceneStore.activeTool === "resize") {
+      updateNode(sceneStore.selectedUuid, {
         cameraScale: extractCameraScale(),
       } as Partial<SceneNode>);
     } else {
-      updateNode(selectedUuid, {
+      updateNode(sceneStore.selectedUuid, {
         position: [object.position.x, object.position.y, object.position.z],
         rotation: [object.rotation.x, object.rotation.y, object.rotation.z],
         scale: [object.scale.x, object.scale.y, object.scale.z],
@@ -69,7 +67,7 @@
   };
 </script>
 
-{#if selectedUuid && object && mode}
+{#if sceneStore.selectedUuid && object && mode}
   <TransformControls
     {object}
     {mode}

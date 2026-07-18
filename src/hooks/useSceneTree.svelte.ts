@@ -7,9 +7,7 @@ import {
   createOnDropHandler,
 } from "@headless-tree/core";
 import {
-  nodes,
-  sceneRootChildren,
-  selectedUuid,
+  sceneStore,
   getObject,
   reparentNodes,
 } from "@/store/sceneStore.svelte";
@@ -43,7 +41,7 @@ export function createSceneTree() {
     },
     features: [syncDataLoaderFeature, hotkeysCoreFeature, dragAndDropFeature],
     initialState: {
-      expandedItems: [SCENE_ROOT_ID, ...sceneRootChildren],
+      expandedItems: [SCENE_ROOT_ID, ...sceneStore.sceneRootChildren],
     },
     canDrop: () => true,
     onDrop: createOnDropHandler((item, newChildIds) => {
@@ -70,8 +68,8 @@ export function createSceneTree() {
   // render already has the up-to-date item list.
   $effect.pre(() => {
     treeData = {
-      [SCENE_ROOT_ID]: { name: "Scene", type: "Scene", children: sceneRootChildren },
-      ...nodes,
+      [SCENE_ROOT_ID]: { name: "Scene", type: "Scene", children: sceneStore.sceneRootChildren },
+      ...sceneStore.nodes,
     };
     tree.rebuildTree();
   });
@@ -81,10 +79,10 @@ export function createSceneTree() {
   // selectedUuid changes trigger this effect (same as the original
   // useEffect(..., [selectedUuid])).
   $effect(() => {
-    if (!selectedUuid) return;
+    if (!sceneStore.selectedUuid) return;
 
-    const currentNodes = untrack(() => nodes);
-    const currentChildren = untrack(() => sceneRootChildren);
+    const currentNodes = untrack(() => sceneStore.nodes);
+    const currentChildren = untrack(() => sceneStore.sceneRootChildren);
 
     const parentMap: Record<string, string> = {};
     currentChildren.forEach((id) => {
@@ -96,7 +94,7 @@ export function createSceneTree() {
       });
     });
 
-    let current: string | undefined = parentMap[selectedUuid];
+    let current: string | undefined = parentMap[sceneStore.selectedUuid];
     while (current) {
       tree.getItemInstance(current).expand();
       current = parentMap[current];
@@ -104,7 +102,7 @@ export function createSceneTree() {
 
     requestAnimationFrame(() => {
       tree
-        .getItemInstance(selectedUuid)
+        .getItemInstance(sceneStore.selectedUuid!)
         .getElement()
         ?.scrollIntoView({ block: "center" });
     });

@@ -10,7 +10,7 @@
     Vector3,
   } from "three";
   import { createDragGuard } from "@/lib/dragGuard";
-  import { nodes, selectNode, getObject, selectedUuid } from "@/store/sceneStore.svelte";
+  import { sceneStore, selectNode, getObject } from "@/store/sceneStore.svelte";
   import { gizmoInteracting } from "@/lib/gizmoInteracting";
   import pivotPointPng from "@/assets/pivot-point.png?url";
 
@@ -29,7 +29,7 @@
       const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(new Vector2(x, y), camera.current);
       const intersects = raycaster.intersectObjects(scene.children, true);
-      const hit = intersects.find((i) => nodes[i.object.uuid]);
+      const hit = intersects.find((i) => sceneStore.nodes[i.object.uuid]);
       selectNode(hit ? hit.object.uuid : null);
     };
 
@@ -46,7 +46,7 @@
   let boxHelper = $state<BoxHelper | null>(null);
 
   $effect(() => {
-    const obj = selectedUuid ? getObject(selectedUuid) : null;
+    const obj = sceneStore.selectedUuid ? getObject(sceneStore.selectedUuid) : null;
     if (!obj) {
       boxHelper = null;
       return;
@@ -70,7 +70,7 @@
   let pivotSprite = $state<Sprite | null>(null);
 
   $effect(() => {
-    const obj = selectedUuid ? getObject(selectedUuid) : null;
+    const obj = sceneStore.selectedUuid ? getObject(sceneStore.selectedUuid) : null;
     if (!obj) {
       pivotSprite = null;
       return;
@@ -99,7 +99,7 @@
 
   useTask(() => {
     if (!pivotSprite) return;
-    const obj = selectedUuid ? getObject(selectedUuid) : null;
+    const obj = sceneStore.selectedUuid ? getObject(sceneStore.selectedUuid) : null;
     if (!obj) return;
     obj.getWorldPosition(_worldPos);
     pivotSprite.position.copy(_worldPos);

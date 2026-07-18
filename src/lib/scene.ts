@@ -1,5 +1,5 @@
 import type { Object3D } from "three";
-import { createBaseNode, type SceneNode } from "@/store/sceneStore";
+import { createBaseNode, type SceneNode } from "@/store/sceneStore.svelte";
 
 export const SCENE_ROOT_ID = "__scene__";
 
@@ -28,12 +28,4 @@ export function flattenScene(root: Object3D): {
   }
 
   return { rootUuid: walk(root), nodes };
-}
-
-export function findByUuid(root: Object3D, uuid: string): Object3D | null {
-  let found: Object3D | null = null;
-  root.traverse((obj) => {
-    if (obj.uuid === uuid) found = obj;
-  });
-  return found;
 }

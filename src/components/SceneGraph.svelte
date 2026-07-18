@@ -5,7 +5,7 @@
   import TreeItemLabel from "@/components/reui/TreeItemLabel.svelte";
   import TreeDragLine from "@/components/reui/TreeDragLine.svelte";
   import { createSceneTree } from "@/hooks/useSceneTree.svelte";
-  import { sceneRootChildren, selectedUuid, selectNode } from "@/store/sceneStore.svelte";
+  import { sceneStore, selectNode } from "@/store/sceneStore.svelte";
 
   const MESH_TYPES = new Set(["Mesh", "SkinnedMesh"]);
   const IMAGE_TYPES = new Set(["ImagePlane"]);
@@ -13,7 +13,7 @@
   const { tree, items, treeData } = createSceneTree();
 </script>
 
-{#if sceneRootChildren.length === 0}
+{#if sceneStore.sceneRootChildren.length === 0}
   <p class="px-4 py-6 text-center text-xs text-muted-foreground">
     Import a GLB or GLTF to see the scene graph
   </p>
@@ -25,7 +25,7 @@
       {@const isImage = IMAGE_TYPES.has(data?.type ?? "")}
       <TreeItem {item} {...item.getDragHandleProps()}>
         <TreeItemLabel
-          class={selectedUuid === item.getId() ? "!bg-white/10 !text-accent-foreground" : ""}
+          class={sceneStore.selectedUuid === item.getId() ? "!bg-white/10 !text-accent-foreground" : ""}
           onclick={() => selectNode(item.getId())}
         >
           <span class="flex items-center gap-1.5 min-w-0">
