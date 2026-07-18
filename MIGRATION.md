@@ -236,7 +236,7 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 **Why last:** `App.svelte` is the assembly point for everything. `main.ts` and `index.html` can only be switched once `App.svelte` is complete.
 
-- [ ] `src/App.svelte` (already exists as empty stub — fill it in)
+- [x] `src/App.svelte` (already exists as empty stub — fill it in)
   - Replace `<Canvas>` from R3F with `<Canvas>` from `@threlte/core`
   - Replace `<CameraControls>` + `<Environment>` from drei with `@threlte/extras` equivalents
   - Add `$effect` with cleanup for `window.electronAPI.onImportFiles` — pushes to `importedModels`/`importedImages` in the store (replaces the dissolved `useImportedFiles` hook)
@@ -244,11 +244,11 @@ These are already framework-agnostic and contain no React or R3F imports:
   - `<TooltipProvider>` wrapper — use bits-ui equivalent if needed
   - Delete `App.tsx`
 
-- [ ] `src/main.tsx` → `src/main.ts`
+- [x] `src/main.tsx` → `src/main.ts`
   - Replace `createRoot(...).render(...)` with Svelte's `mount(App, { target: ... })`
   - Delete `main.tsx`
 
-- [ ] `index.html`
+- [x] `index.html`
   - Update `<script src="/src/main.tsx">` → `<script src="/src/main.ts">`
 
-- [ ] Delete `src/assets/react.svg` (unused React logo asset)
+- [x] Delete `src/assets/react.svg` (unused React logo asset)
