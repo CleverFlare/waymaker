@@ -156,7 +156,7 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 **Why here:** Depends only on `Button`, `Tooltip` (Phase 2) and the store (Phase 1). No 3D dependencies. Straightforward migration.
 
-- [ ] `src/components/Toolbar.tsx` → `Toolbar.svelte`
+- [x] `src/components/Toolbar.tsx` → `Toolbar.svelte`
   - `lucide-react` icon imports → `lucide-svelte`
   - Store reads via rune module
   - Uses `Button` and `Tooltip` from Phase 2
