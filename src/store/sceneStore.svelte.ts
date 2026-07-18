@@ -1,3 +1,4 @@
+import { untrack } from 'svelte';
 import type { Object3D } from 'three';
 import { SCENE_ROOT_ID } from '@/lib/scene';
 
@@ -91,25 +92,28 @@ export function addImportedImage(url: string, name: string) {
 }
 
 export function addModel(newNodes: Record<string, SceneNode>, rootUuid: string) {
-	sceneStore.nodes = { ...sceneStore.nodes, ...newNodes };
-	sceneStore.sceneRootChildren = [...sceneStore.sceneRootChildren, rootUuid];
+	sceneStore.nodes = { ...untrack(() => sceneStore.nodes), ...newNodes };
+	sceneStore.sceneRootChildren = [...untrack(() => sceneStore.sceneRootChildren), rootUuid];
 }
 
 export function removeNode(rootUuid: string) {
 	const toRemove = new Set<string>();
 	const queue = [rootUuid];
+	const nodes = untrack(() => sceneStore.nodes);
 	while (queue.length) {
 		const uuid = queue.shift()!;
 		toRemove.add(uuid);
-		sceneStore.nodes[uuid]?.children.forEach((c) => queue.push(c));
+		nodes[uuid]?.children.forEach((c) => queue.push(c));
 	}
 
-	const newNodes = { ...sceneStore.nodes };
+	const newNodes = { ...nodes };
 	toRemove.forEach((uuid) => delete newNodes[uuid]);
 
 	sceneStore.nodes = newNodes;
-	sceneStore.sceneRootChildren = sceneStore.sceneRootChildren.filter((uuid) => uuid !== rootUuid);
-	if (toRemove.has(sceneStore.selectedUuid ?? '')) sceneStore.selectedUuid = null;
+	sceneStore.sceneRootChildren = untrack(() => sceneStore.sceneRootChildren).filter(
+		(uuid) => uuid !== rootUuid
+	);
+	if (toRemove.has(untrack(() => sceneStore.selectedUuid) ?? '')) sceneStore.selectedUuid = null;
 }
 
 export function selectNode(uuid: string | null) {
