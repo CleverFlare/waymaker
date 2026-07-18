@@ -29,5 +29,5 @@
       className,
     )}
     {...rest}
-  />
+  ></div>
 {/if}

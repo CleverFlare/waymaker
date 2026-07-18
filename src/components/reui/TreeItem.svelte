@@ -17,26 +17,28 @@
   const parentCtx = getContext<TreeContext>(TREE_CTX);
 
   // Child context overrides currentItem so TreeItemLabel can read it from context
-  const itemCtx = $state<TreeContext>({ ...parentCtx, currentItem: item });
-  $effect(() => { itemCtx.currentItem = item; });
+  const itemCtx = $state<TreeContext>({ ...parentCtx, currentItem: undefined });
+  $effect.pre(() => { itemCtx.currentItem = item; });
   setContext(TREE_CTX, itemCtx);
 
-  // Normalize headless-tree item props (extracts ref, lowercases event handlers)
+  // Normalize headless-tree item props — captured once at init; ref/attrs are stable.
   const { ref: registerItem, attrs: itemAttrs } =
     typeof item.getProps === "function"
       ? normalizeHtProps(item.getProps())
       : { ref: undefined, attrs: {} };
 
   // Convert camelCase event handlers from getDragHandleProps() passed as rest props
-  const normalizedRest = Object.fromEntries(
-    Object.entries(rest).map(([k, v]) => [/^on[A-Z]/.test(k) ? k.toLowerCase() : k, v]),
+  const normalizedRest = $derived(
+    Object.fromEntries(
+      Object.entries(rest).map(([k, v]) => [/^on[A-Z]/.test(k) ? k.toLowerCase() : k, v]),
+    )
   );
 
   let el: HTMLButtonElement | undefined = $state();
   $effect(() => {
     if (!el || !registerItem) return;
     registerItem(el);
-    return () => registerItem!(null);
+    return () => registerItem(null);
   });
 </script>
 

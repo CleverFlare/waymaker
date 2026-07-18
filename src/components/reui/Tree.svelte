@@ -35,8 +35,8 @@
   }: Props = $props();
 
   // Reactive context object — TreeItem updates currentItem here
-  const ctx = $state<TreeContext>({ indent, tree, toggleIconType, currentItem: undefined });
-  $effect(() => {
+  const ctx = $state<TreeContext>({ indent: 20, tree: undefined, toggleIconType: "chevron", currentItem: undefined });
+  $effect.pre(() => {
     ctx.indent = indent;
     ctx.tree = tree;
     ctx.toggleIconType = toggleIconType;
@@ -44,6 +44,7 @@
   setContext(TREE_CTX, ctx);
 
   // Normalize headless-tree container props (camelCase events, ref, style object)
+  // Captured once at init — tree instance is stable for the component lifetime.
   const { ref: registerContainer, style: htStyle, attrs: htAttrs } = tree
     ? normalizeHtProps(tree.getContainerProps())
     : { ref: undefined, style: undefined, attrs: {} };
@@ -52,7 +53,7 @@
   $effect(() => {
     if (!el || !registerContainer) return;
     registerContainer(el);
-    return () => registerContainer!(null);
+    return () => registerContainer(null);
   });
 </script>
 
