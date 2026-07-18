@@ -66,7 +66,7 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 **Why here:** `SceneGraph` depends on it. The current implementation uses `@base-ui/react/use-render` and `@base-ui/react/merge-props` — both React-specific APIs that must be rewritten. This is the most architecturally novel UI migration step.
 
-- [ ] `src/components/reui/tree.tsx` → `Tree.svelte` (+ `TreeItem.svelte`, `TreeItemLabel.svelte`, `TreeDragLine.svelte`)
+- [x] `src/components/reui/tree.tsx` → `Tree.svelte` (+ `TreeItem.svelte`, `TreeItemLabel.svelte`, `TreeDragLine.svelte`)
   - Drop `@base-ui/react/use-render` and `@base-ui/react/merge-props`; replace with plain Svelte props and slots/snippets
   - Keep `@headless-tree/core` usage: `ItemInstance`, `getContainerProps`, `getProps`, `getDragLineStyle`, `getItemMeta`
   - Tree context becomes a Svelte context (`setContext`/`getContext`)
@@ -79,21 +79,24 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 **Why here:** These two hooks have no dependencies on other migrated files. `useDragGuard` is needed by `SelectionManager` (3D track); `useImportedFiles` is needed by `App`. Both can be resolved now.
 
-- [ ] `src/hooks/useDragGuard.ts` → **`src/lib/dragGuard.ts`** (plain factory function)
+- [x] `src/hooks/useDragGuard.ts` → **`src/lib/dragGuard.ts`** (plain factory function)
   - `useRef` + `useCallback` were React ceremony for a plain mutable closure — replace with:
     ```ts
     export function createDragGuard(thresholdPx = 5) {
       let anchor = { x: 0, y: 0 };
       return {
-        onPointerDown: (e) => { anchor = { x: e.clientX, y: e.clientY }; },
-        wasDrag: (e) => Math.hypot(e.clientX - anchor.x, e.clientY - anchor.y) > thresholdPx,
+        onPointerDown: (e) => {
+          anchor = { x: e.clientX, y: e.clientY };
+        },
+        wasDrag: (e) =>
+          Math.hypot(e.clientX - anchor.x, e.clientY - anchor.y) > thresholdPx,
       };
     }
     ```
   - No runes, no `.svelte.ts` — pure TypeScript
   - Delete `useDragGuard.ts`
 
-- [ ] `src/hooks/useImportedFiles.ts` → **dissolved**: state into store, subscription into `App.svelte`
+- [x] `src/hooks/useImportedFiles.ts` → **dissolved**: state into store, subscription into `App.svelte`
   - `importedModels` and `importedImages` move to `sceneStore.svelte.ts` as `$state` arrays (see Phase 1)
   - The `window.electronAPI.onImportFiles` subscription becomes a `$effect` with cleanup directly in `App.svelte`
   - Delete `useImportedFiles.ts`
@@ -104,7 +107,7 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 **Why grouped:** `Panel.tsx` and its two consumers (`DefaultPanel`, `ImagePlanePanel`) are tightly coupled. Migrating Panel without its consumers leaves dead JSX imports. The panel hooks only serve panel components and belong in this step.
 
-- [ ] `src/hooks/useNodeTransform.ts` → **dissolved**: `centerPivot` into `src/lib/nodeTransform.ts`; everything else into the panels directly
+- [x] `src/hooks/useNodeTransform.ts` → **dissolved**: `centerPivot` into `src/lib/nodeTransform.ts`; everything else into the panels directly
   - The live/commit split is dropped entirely (was a React performance escape hatch — not needed in Svelte)
   - Drop the `eventBus.on("transform")` listener
   - `pos`/`rot`/`scale` are read directly from the store node; rotation degree conversion is a one-line `$derived` in each panel
@@ -112,7 +115,7 @@ These are already framework-agnostic and contain no React or R3F imports:
   - `centerPivot(uuid)` — the only non-trivial piece — becomes an exported function in `src/lib/nodeTransform.ts`
   - Delete `useNodeTransform.ts`
 
-- [ ] `src/hooks/useImagePlaneMode.ts` → **dissolved into `ImagePlanePanel.svelte`**
+- [x] `src/hooks/useImagePlaneMode.ts` → **dissolved into `ImagePlanePanel.svelte`**
   - Single consumer; after dropping the event bus the entire hook is store reads + `updateNode` calls
   - Drop all `eventBus.emit/on("imagePlane")` — `ImagePlanePanel.svelte` calls `updateNode` directly on every change
   - `toggleBillboard` and `toggleSizeAttenuation` inline as one-liners
@@ -120,7 +123,7 @@ These are already framework-agnostic and contain no React or R3F imports:
   - Delete `useImagePlaneMode.ts`
   - Delete `src/lib/eventBus.ts` in this step (last consumer removed)
 
-- [ ] `src/components/panels/Panel.tsx` → split into individual `.svelte` files
+- [x] `src/components/panels/Panel.tsx` → split into individual `.svelte` files
   - `PanelRoot` → `Panel.svelte`
   - `PanelHeader` → `PanelHeader.svelte`
   - `PanelTitle` → `PanelTitle.svelte`
@@ -130,19 +133,19 @@ These are already framework-agnostic and contain no React or R3F imports:
   - `PanelRow` → `PanelRow.svelte`
   - Delete `Panel.tsx`
 
-- [ ] `src/components/panels/DefaultPanel.tsx` → `DefaultPanel.svelte`
+- [x] `src/components/panels/DefaultPanel.tsx` → `DefaultPanel.svelte`
   - Replace `Panel.*` compound imports with individual `.svelte` component imports
   - Import `selectedUuid`, `nodes`, `updateNode` from store directly; import `centerPivot` from `src/lib/nodeTransform.ts`
   - `$derived` for degree-converted rotation display
   - Delete `DefaultPanel.tsx`
 
-- [ ] `src/components/panels/ImagePlanePanel.tsx` → `ImagePlanePanel.svelte`
+- [x] `src/components/panels/ImagePlanePanel.tsx` → `ImagePlanePanel.svelte`
   - Replace `Panel.*` compound imports with individual `.svelte` component imports
   - Import `selectedUuid`, `nodes`, `updateNode` from store directly; import `centerPivot` from `src/lib/nodeTransform.ts`
   - All `useNodeTransform` and `useImagePlaneMode` logic is inline — no hook imports
   - Delete `ImagePlanePanel.tsx`
 
-- [ ] `src/components/panels/PanelRouter.tsx` → `PanelRouter.svelte`
+- [x] `src/components/panels/PanelRouter.tsx` → `PanelRouter.svelte`
   - Type-based routing: read `node.type` from store, conditionally render panel
   - No R3F deps; pure reactive logic
   - Delete `PanelRouter.tsx`
