@@ -16,6 +16,7 @@
     addImportedModel,
     addImportedImage,
   } from "@/store/sceneStore.svelte";
+    import { WebGPURenderer } from "three/webgpu";
 
   // Absorbed from the dissolved useImportedFiles hook (Phase 4)
   const IMAGE_EXT = /\.(png|jpe?g|webp)$/i;
@@ -62,15 +63,7 @@
       <T.AmbientLight intensity={0.6} />
       <T.DirectionalLight position={[5, 10, 5]} intensity={1.5} />
 
-      <Grid
-        infiniteGrid
-        followCamera
-        fadeDistance={120}
-        cellColor="#666666"
-        sectionColor="#999999"
-        sectionSize={10}
-        gridSize={240}
-      />
+      <Grid followCamera gridSize={[200, 200]} cellSize={1} cellColor="#cccccc" cellThickness={1.4} sectionSize={5} sectionColor="#ff3e00" sectionThickness={2.0} fadeDistance={100} />
 
       {#each sceneStore.importedModels as { id, url } (id)}
         <ModelInstance {url} />
