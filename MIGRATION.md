@@ -168,12 +168,12 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 **Why here:** `SceneGraph` depends on the Tree primitive (Phase 3) and `useSceneTree`. `useAutoReveal` is only used by `useSceneTree` — they migrate together.
 
-- [ ] `src/hooks/useAutoReveal.ts` → **dissolved into `useSceneTree.svelte.ts`** as a local helper function
+- [x] `src/hooks/useAutoReveal.ts` → **dissolved into `useSceneTree.svelte.ts`** as a local helper function
   - No state, no lifecycle of its own — it is pure side-effect logic called inside a `$effect`
   - The parent-map walk and `expand()` calls become a plain function defined in the same file
   - Delete `useAutoReveal.ts`
 
-- [ ] `src/hooks/useSceneTree.ts` → **`src/hooks/useSceneTree.svelte.ts`** (only hook file that survives)
+- [x] `src/hooks/useSceneTree.ts` → **`src/hooks/useSceneTree.svelte.ts`** (only hook file that survives)
   - Replace `useTree` from `@headless-tree/react` with `createTree` from `@headless-tree/core`
   - `useLayoutEffect` → `$effect` for `tree.rebuildTree()` when `nodes`/`sceneRootChildren` change
   - `treeDataRef` becomes a plain variable (not reactive — updated synchronously before each rebuild)
@@ -181,7 +181,7 @@ These are already framework-agnostic and contain no React or R3F imports:
   - Store reads via rune module
   - Returns same interface: `{ tree, treeDataRef, sceneRootChildren, selectedUuid, selectNode }`
 
-- [ ] `src/components/SceneGraph.tsx` → `SceneGraph.svelte`
+- [x] `src/components/SceneGraph.tsx` → `SceneGraph.svelte`
   - Uses `Tree`, `TreeItem`, `TreeItemLabel`, `TreeDragLine` from Phase 3
   - Uses `useSceneTree` from above
   - `lucide-react` icon imports → `lucide-svelte`
