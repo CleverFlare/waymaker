@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getContext, setContext } from 'svelte';
+	import { getContext, setContext, untrack } from 'svelte';
 	import type { Snippet } from 'svelte';
 	import type { ItemInstance } from '@headless-tree/core';
 	import { cn, normalizeHtProps } from '@/lib/utils';
@@ -24,10 +24,11 @@
 	setContext(TREE_CTX, itemCtx);
 
 	// Normalize headless-tree item props — captured once at init; ref/attrs are stable.
-	const { ref: registerItem, attrs: itemAttrs } =
+	const { ref: registerItem, attrs: itemAttrs } = untrack(() =>
 		typeof item.getProps === 'function'
 			? normalizeHtProps(item.getProps())
-			: { ref: undefined, attrs: {} };
+			: { ref: undefined, attrs: {} }
+	);
 
 	// Convert camelCase event handlers from getDragHandleProps() passed as rest props
 	const normalizedRest = $derived(

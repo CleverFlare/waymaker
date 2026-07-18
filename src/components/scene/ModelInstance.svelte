@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { T } from '@threlte/core';
 	import { useGltf } from '@threlte/extras';
 	import {
@@ -15,7 +16,7 @@
 
 	let { url }: Props = $props();
 
-	const gltf = useGltf(url);
+	const gltf = useGltf(untrack(() => url));
 
 	$effect(() => {
 		const loaded = $gltf;

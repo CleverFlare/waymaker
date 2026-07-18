@@ -14,7 +14,7 @@
 </script>
 
 <script lang="ts">
-	import { setContext } from 'svelte';
+	import { setContext, untrack } from 'svelte';
 	import type { Snippet } from 'svelte';
 	import { cn, normalizeHtProps } from '@/lib/utils';
 
@@ -54,9 +54,11 @@
 		ref: registerContainer,
 		style: htStyle,
 		attrs: htAttrs
-	} = tree
-		? normalizeHtProps(tree.getContainerProps())
-		: { ref: undefined, style: undefined, attrs: {} };
+	} = untrack(() =>
+		tree
+			? normalizeHtProps(tree.getContainerProps())
+			: { ref: undefined, style: undefined, attrs: {} }
+	);
 
 	let el: HTMLDivElement | undefined = $state();
 	$effect(() => {

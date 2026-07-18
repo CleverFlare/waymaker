@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import * as THREE from 'three';
 	import { MathUtils, PerspectiveCamera, Euler, Quaternion } from 'three';
 	import { T, useThrelte, useTask } from '@threlte/core';
@@ -21,7 +22,7 @@
 
 	let { url, name }: Props = $props();
 
-	const texture = useTexture(url);
+	const texture = useTexture(untrack(() => url));
 	const { camera } = useThrelte();
 
 	// Created once the texture resolves; disposed on cleanup.
