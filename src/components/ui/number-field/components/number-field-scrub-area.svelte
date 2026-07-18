@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { boxWith, mergeProps } from "svelte-toolbelt";
+	import { boxWith, mergeProps } from 'svelte-toolbelt';
 	// import { createId } from "$lib/internal/create-id.js";
-	import { createId } from "@/lib/internal/create-id.js";
-	import { NumberFieldScrubAreaState } from "../number-field.svelte.js";
-	import type { NumberFieldScrubAreaProps } from "../types.js";
+	import { createId } from '@/lib/internal/create-id.js';
+	import { NumberFieldScrubAreaState } from '../number-field.svelte.js';
+	import type { NumberFieldScrubAreaProps } from '../types.js';
 
 	const uid = $props.id();
 
@@ -12,7 +12,7 @@
 		child,
 		id = createId(uid),
 		ref = $bindable(null),
-		direction = "horizontal",
+		direction = 'horizontal',
 		pixelSensitivity = 2,
 		teleportDistance,
 		...restProps
@@ -26,7 +26,7 @@
 		),
 		direction: boxWith(() => direction),
 		pixelSensitivity: boxWith(() => pixelSensitivity),
-		teleportDistance: boxWith(() => teleportDistance),
+		teleportDistance: boxWith(() => teleportDistance)
 	});
 
 	const mergedProps = $derived(mergeProps(restProps, scrubAreaState.props));

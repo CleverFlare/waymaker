@@ -1,114 +1,114 @@
 <script lang="ts">
-  import { T, useThrelte, useTask } from "@threlte/core";
-  import {
-    BoxHelper,
-    Raycaster,
-    Sprite,
-    SpriteMaterial,
-    TextureLoader,
-    Vector2,
-    Vector3,
-  } from "three";
-  import { createDragGuard } from "@/lib/dragGuard";
-  import { sceneStore, selectNode, getObject } from "@/store/sceneStore.svelte";
-  import { gizmoInteracting } from "@/lib/gizmoInteracting";
-  import pivotPointPng from "@/assets/pivot-point.png?url";
+	import { T, useThrelte, useTask } from '@threlte/core';
+	import {
+		BoxHelper,
+		Raycaster,
+		Sprite,
+		SpriteMaterial,
+		TextureLoader,
+		Vector2,
+		Vector3
+	} from 'three';
+	import { createDragGuard } from '@/lib/dragGuard';
+	import { sceneStore, selectNode, getObject } from '@/store/sceneStore.svelte';
+	import { gizmoInteracting } from '@/lib/gizmoInteracting';
+	import pivotPointPng from '@/assets/pivot-point.png?url';
 
-  const { scene, camera, canvas } = useThrelte();
-  const raycaster = new Raycaster();
-  const { onPointerDown, wasDrag } = createDragGuard(5);
+	const { scene, camera, canvas } = useThrelte();
+	const raycaster = new Raycaster();
+	const { onPointerDown, wasDrag } = createDragGuard(5);
 
-  // ── Click-to-select ────────────────────────────────────────────────────────
+	// ── Click-to-select ────────────────────────────────────────────────────────
 
-  $effect(() => {
-    const handleClick = (e: MouseEvent) => {
-      if (wasDrag(e)) return;
-      if (gizmoInteracting.current) return;
-      const rect = canvas.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-      raycaster.setFromCamera(new Vector2(x, y), camera.current);
-      const intersects = raycaster.intersectObjects(scene.children, true);
-      const hit = intersects.find((i) => sceneStore.nodes[i.object.uuid]);
-      selectNode(hit ? hit.object.uuid : null);
-    };
+	$effect(() => {
+		const handleClick = (e: MouseEvent) => {
+			if (wasDrag(e)) return;
+			if (gizmoInteracting.current) return;
+			const rect = canvas.getBoundingClientRect();
+			const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+			const y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+			raycaster.setFromCamera(new Vector2(x, y), camera.current);
+			const intersects = raycaster.intersectObjects(scene.children, true);
+			const hit = intersects.find((i) => sceneStore.nodes[i.object.uuid]);
+			selectNode(hit ? hit.object.uuid : null);
+		};
 
-    canvas.addEventListener("pointerdown", onPointerDown);
-    canvas.addEventListener("click", handleClick);
-    return () => {
-      canvas.removeEventListener("pointerdown", onPointerDown);
-      canvas.removeEventListener("click", handleClick);
-    };
-  });
+		canvas.addEventListener('pointerdown', onPointerDown);
+		canvas.addEventListener('click', handleClick);
+		return () => {
+			canvas.removeEventListener('pointerdown', onPointerDown);
+			canvas.removeEventListener('click', handleClick);
+		};
+	});
 
-  // ── BoxHelper (inlined useBoxHelper) ──────────────────────────────────────
+	// ── BoxHelper (inlined useBoxHelper) ──────────────────────────────────────
 
-  let boxHelper = $state<BoxHelper | null>(null);
+	let boxHelper = $state<BoxHelper | null>(null);
 
-  $effect(() => {
-    const obj = sceneStore.selectedUuid ? getObject(sceneStore.selectedUuid) : null;
-    if (!obj) {
-      boxHelper = null;
-      return;
-    }
-    const helper = new BoxHelper(obj, 0xffff00);
-    helper.material.depthTest = false;
-    helper.material.depthWrite = false;
-    helper.material.transparent = true;
-    helper.renderOrder = 1;
-    boxHelper = helper;
-    return () => {
-      boxHelper = null;
-    };
-  });
+	$effect(() => {
+		const obj = sceneStore.selectedUuid ? getObject(sceneStore.selectedUuid) : null;
+		if (!obj) {
+			boxHelper = null;
+			return;
+		}
+		const helper = new BoxHelper(obj, 0xffff00);
+		helper.material.depthTest = false;
+		helper.material.depthWrite = false;
+		helper.material.transparent = true;
+		helper.renderOrder = 1;
+		boxHelper = helper;
+		return () => {
+			boxHelper = null;
+		};
+	});
 
-  useTask(() => boxHelper?.update());
+	useTask(() => boxHelper?.update());
 
-  // ── PivotSprite (inlined usePivotSprite) ──────────────────────────────────
+	// ── PivotSprite (inlined usePivotSprite) ──────────────────────────────────
 
-  const _worldPos = new Vector3();
-  let pivotSprite = $state<Sprite | null>(null);
+	const _worldPos = new Vector3();
+	let pivotSprite = $state<Sprite | null>(null);
 
-  $effect(() => {
-    const obj = sceneStore.selectedUuid ? getObject(sceneStore.selectedUuid) : null;
-    if (!obj) {
-      pivotSprite = null;
-      return;
-    }
-    const loader = new TextureLoader();
-    const texture = loader.load(pivotPointPng, (t) => {
-      t.needsUpdate = true;
-    });
-    const mat = new SpriteMaterial({
-      map: texture,
-      sizeAttenuation: false,
-      depthTest: false,
-      depthWrite: false,
-      transparent: true,
-    });
-    const s = new Sprite(mat);
-    s.scale.setScalar(0.02);
-    s.renderOrder = 2;
-    pivotSprite = s;
-    return () => {
-      pivotSprite = null;
-      mat.dispose();
-      texture.dispose();
-    };
-  });
+	$effect(() => {
+		const obj = sceneStore.selectedUuid ? getObject(sceneStore.selectedUuid) : null;
+		if (!obj) {
+			pivotSprite = null;
+			return;
+		}
+		const loader = new TextureLoader();
+		const texture = loader.load(pivotPointPng, (t) => {
+			t.needsUpdate = true;
+		});
+		const mat = new SpriteMaterial({
+			map: texture,
+			sizeAttenuation: false,
+			depthTest: false,
+			depthWrite: false,
+			transparent: true
+		});
+		const s = new Sprite(mat);
+		s.scale.setScalar(0.02);
+		s.renderOrder = 2;
+		pivotSprite = s;
+		return () => {
+			pivotSprite = null;
+			mat.dispose();
+			texture.dispose();
+		};
+	});
 
-  useTask(() => {
-    if (!pivotSprite) return;
-    const obj = sceneStore.selectedUuid ? getObject(sceneStore.selectedUuid) : null;
-    if (!obj) return;
-    obj.getWorldPosition(_worldPos);
-    pivotSprite.position.copy(_worldPos);
-  });
+	useTask(() => {
+		if (!pivotSprite) return;
+		const obj = sceneStore.selectedUuid ? getObject(sceneStore.selectedUuid) : null;
+		if (!obj) return;
+		obj.getWorldPosition(_worldPos);
+		pivotSprite.position.copy(_worldPos);
+	});
 </script>
 
 {#if boxHelper}
-  <T is={boxHelper} dispose={false} />
+	<T is={boxHelper} dispose={false} />
 {/if}
 {#if pivotSprite}
-  <T is={pivotSprite} dispose={false} />
+	<T is={pivotSprite} dispose={false} />
 {/if}

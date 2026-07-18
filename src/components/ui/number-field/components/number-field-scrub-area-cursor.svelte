@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { boxWith, mergeProps } from "svelte-toolbelt";
+	import { boxWith, mergeProps } from 'svelte-toolbelt';
 	// import { createId } from "$lib/internal/create-id.js";
 	// import Portal from "$lib/bits/utilities/portal/portal.svelte";
-	import { createId } from "@/lib/internal/create-id.js";
-	import Portal from "@/lib/bits/utilities/portal/portal.svelte";
-	import { NumberFieldScrubAreaCursorState } from "../number-field.svelte.js";
-	import type { NumberFieldScrubAreaCursorProps } from "../types.js";
+	import { createId } from '@/lib/internal/create-id.js';
+	import Portal from '@/lib/bits/utilities/portal/portal.svelte';
+	import { NumberFieldScrubAreaCursorState } from '../number-field.svelte.js';
+	import type { NumberFieldScrubAreaCursorProps } from '../types.js';
 
 	const uid = $props.id();
 
@@ -22,7 +22,7 @@
 		ref: boxWith(
 			() => ref,
 			(v) => (ref = v)
-		),
+		)
 	});
 
 	const mergedProps = $derived(mergeProps(restProps, cursorState.props));

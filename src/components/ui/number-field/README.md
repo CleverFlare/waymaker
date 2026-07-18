@@ -13,14 +13,14 @@ Drop the `number-field/` folder into `packages/bits-ui/src/lib/bits/`, then
 re-export it from `packages/bits-ui/src/lib/index.ts`:
 
 ```ts
-export * from "./bits/number-field/index.js";
+export * from './bits/number-field/index.js';
 ```
 
 ## Usage
 
 ```svelte
 <script lang="ts">
-	import { NumberField } from "bits-ui";
+	import { NumberField } from 'bits-ui';
 	let value = $state<number | null>(0);
 </script>
 

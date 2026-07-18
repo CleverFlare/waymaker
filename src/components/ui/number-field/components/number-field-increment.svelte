@@ -1,9 +1,9 @@
 <script lang="ts">
-	import { boxWith, mergeProps } from "svelte-toolbelt";
+	import { boxWith, mergeProps } from 'svelte-toolbelt';
 	// import { createId } from "$lib/internal/create-id.js";
-	import { createId } from "@/lib/internal/create-id.js";
-	import { NumberFieldIncrementState } from "../number-field.svelte.js";
-	import type { NumberFieldIncrementProps } from "../types.js";
+	import { createId } from '@/lib/internal/create-id.js';
+	import { NumberFieldIncrementState } from '../number-field.svelte.js';
+	import type { NumberFieldIncrementProps } from '../types.js';
 
 	const uid = $props.id();
 
@@ -22,7 +22,7 @@
 			() => ref,
 			(v) => (ref = v)
 		),
-		disabled: boxWith(() => disabled),
+		disabled: boxWith(() => disabled)
 	});
 
 	const mergedProps = $derived(mergeProps(restProps, incrementState.props));

@@ -13,9 +13,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "oxlint",
+    "lint": "prettier --check . && oxlint",
     "preview": "vite preview",
-    "dist": "npm run build && electron-builder"
+    "dist": "npm run build && electron-builder",
+    "format": "prettier --write ."
   },
   "build": {
     "appId": "com.waymaker.app",
@@ -70,6 +71,9 @@
     "electron": "^43.0.0",
     "electron-builder": "^26.15.3",
     "oxlint": "^1.71.0",
+    "prettier": "^3.8.3",
+    "prettier-plugin-svelte": "^4.1.0",
+    "prettier-plugin-tailwindcss": "^0.8.0",
     "shadcn-svelte": "^1.4.2",
     "svelte-check": "^4.7.2",
     "tailwind-variants": "^3.2.2",

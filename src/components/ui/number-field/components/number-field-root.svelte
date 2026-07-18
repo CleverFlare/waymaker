@@ -1,11 +1,11 @@
 <script lang="ts">
-	import { boxWith, mergeProps } from "svelte-toolbelt";
+	import { boxWith, mergeProps } from 'svelte-toolbelt';
 	// import { noop } from "$lib/internal/noop.js";
 	// import { createId } from "$lib/internal/create-id.js";
-	import { noop } from "@/lib/internal/noop.js";
-	import { createId } from "@/lib/internal/create-id.js";
-	import { NumberFieldRootState } from "../number-field.svelte.js";
-	import type { NumberFieldRootProps } from "../types.js";
+	import { noop } from '@/lib/internal/noop.js';
+	import { createId } from '@/lib/internal/create-id.js';
+	import { NumberFieldRootState } from '../number-field.svelte.js';
+	import type { NumberFieldRootProps } from '../types.js';
 
 	const uid = $props.id();
 
@@ -64,7 +64,7 @@
 		readOnly: boxWith(() => readOnly),
 		required: boxWith(() => required),
 		name: boxWith(() => name),
-		form: boxWith(() => form),
+		form: boxWith(() => form)
 	});
 
 	const mergedProps = $derived(mergeProps(restProps, rootState.props));
