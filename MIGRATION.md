@@ -193,12 +193,12 @@ These are already framework-agnostic and contain no React or R3F imports:
 
 **Why last in 3D track:** All scene components must live inside a Threlte `<Canvas>`, so they require Threlte context. They depend on `createDragGuard` (Phase 4) and the store (Phase 1). The Threlte hook files (`useBillboard`, `useSizeAttenuation`, `useBoxHelper`, `usePivotSprite`) are not migrated as separate files — their logic is inlined directly into the single component that consumes each one.
 
-- [ ] `src/components/scene/SceneRegistrar.tsx` → `SceneRegistrar.svelte`
+- [x] `src/components/scene/SceneRegistrar.tsx` → `SceneRegistrar.svelte`
   - `useThree((s) => s.scene)` → `useThrelte().scene` from `@threlte/core`
   - `useEffect` → `$effect`
   - Delete `SceneRegistrar.tsx`
 
-- [ ] `src/components/scene/SelectionManager.tsx` → `SelectionManager.svelte`
+- [x] `src/components/scene/SelectionManager.tsx` → `SelectionManager.svelte`
   - `useThree()` → `useThrelte()` from `@threlte/core`
   - `useDragGuard(5)` → `createDragGuard(5)` from `src/lib/dragGuard.ts`
   - `useBoxHelper`: inline as `$state` + `$effect` (create/configure/cleanup `BoxHelper`) + `useTask` (call `.update()` each frame); delete `useBoxHelper.ts`
@@ -206,19 +206,19 @@ These are already framework-agnostic and contain no React or R3F imports:
   - `<primitive object={...} />` → `<T is={...} />` from `@threlte/core`
   - Delete `SelectionManager.tsx`
 
-- [ ] `src/components/scene/TransformGizmo.tsx` → `TransformGizmo.svelte`
+- [x] `src/components/scene/TransformGizmo.tsx` → `TransformGizmo.svelte`
   - `<TransformControls>` from drei → `<TransformControls>` from `@threlte/extras`
   - `useThree()` → `useThrelte()`
   - Event callbacks (`onMouseDown`, `onMouseUp`, `onChange`) → Threlte event binding
   - Delete `TransformGizmo.tsx`
 
-- [ ] `src/components/scene/ModelInstance.tsx` → `ModelInstance.svelte`
+- [x] `src/components/scene/ModelInstance.tsx` → `ModelInstance.svelte`
   - `useGLTF` from drei → `useGltf` from `@threlte/extras`
   - `useEffect` → `$effect`
   - `<primitive object={scene} />` → `<T is={scene} />` from `@threlte/core`
   - Delete `ModelInstance.tsx`
 
-- [ ] `src/components/scene/ImageInstance.tsx` → `ImageInstance.svelte`
+- [x] `src/components/scene/ImageInstance.tsx` → `ImageInstance.svelte`
   - `useTexture` from drei → `useTexture` from `@threlte/extras`
   - `useMemo` → plain variable (textures are stable per `url` prop)
   - `useBillboard`: inline as a `useTask` block — read `nodes[uuid]` from store directly each frame, update `mesh.quaternion` against `camera.quaternion`; delete `useBillboard.ts`
@@ -226,7 +226,7 @@ These are already framework-agnostic and contain no React or R3F imports:
   - `<primitive object={mesh} />` → `<T is={mesh} />`
   - Delete `ImageInstance.tsx`
 
-- [ ] `src/components/scene/InfiniteGrid.tsx` → **replaced by `<Grid>` from `@threlte/extras`**
+- [x] `src/components/scene/InfiniteGrid.tsx` → **replaced by `<Grid>` from `@threlte/extras`**
   - Drop the custom TSL/WebGPU implementation entirely; use `<Grid>` from `@threlte/extras` instead
   - Delete `InfiniteGrid.tsx`
 
