@@ -4,13 +4,52 @@
 	import TreeItem from '@/components/reui/TreeItem.svelte';
 	import TreeItemLabel from '@/components/reui/TreeItemLabel.svelte';
 	import TreeDragLine from '@/components/reui/TreeDragLine.svelte';
-	import { createSceneTree } from '@/hooks/useSceneTree.svelte';
+	import { syncDataLoaderFeature } from '@headless-tree/core';
+	import { useTree } from '@/hooks/useTree.svelte';
 	import { sceneStore, selectNode } from '@/store/sceneStore.svelte';
+	import { SCENE_ROOT_ID } from '@/lib/scene';
 
 	const MESH_TYPES = new Set(['Mesh', 'SkinnedMesh']);
 	const IMAGE_TYPES = new Set(['ImagePlane']);
 
-	const { tree, items, treeData } = createSceneTree();
+	interface TreeItemData {
+		name: string;
+		type: string;
+		children: string[];
+	}
+
+	let treeData: Record<string, TreeItemData> = {};
+
+	const ht = useTree<TreeItemData>({
+		rootItemId: SCENE_ROOT_ID,
+		getItemName: (item) => item.getItemData().name,
+		isItemFolder: (item) => (item.getItemData().children?.length ?? 0) > 0,
+		dataLoader: {
+			getItem: (id) => treeData[id],
+			getChildren: (id) => treeData[id]?.children ?? []
+		},
+		features: [syncDataLoaderFeature],
+		initialState: {
+			expandedItems: [SCENE_ROOT_ID]
+		}
+	});
+
+	$effect.pre(() => {
+		treeData = {
+			[SCENE_ROOT_ID]: {
+				name: 'Scene',
+				type: 'Scene',
+				children: sceneStore.sceneRootChildren
+			},
+			...Object.fromEntries(
+				Object.values(sceneStore.nodes).map((node) => [
+					node.uuid,
+					{ name: node.name, type: node.type, children: node.children }
+				])
+			)
+		};
+		ht.tree.rebuildTree();
+	});
 </script>
 
 {#if sceneStore.sceneRootChildren.length === 0}
@@ -18,12 +57,12 @@
 		Import a GLB or GLTF to see the scene graph
 	</p>
 {:else}
-	<Tree {tree} indent={16} toggleIconType="chevron" class="p-2">
-		{#each items as item (item.getId())}
+	<Tree tree={ht.tree} indent={16} toggleIconType="chevron" class="p-2">
+		{#each ht.items as item (item.getId())}
 			{@const data = treeData[item.getId()]}
 			{@const isMesh = MESH_TYPES.has(data?.type ?? '')}
 			{@const isImage = IMAGE_TYPES.has(data?.type ?? '')}
-			<TreeItem {item} {...item.getDragHandleProps()}>
+			<TreeItem {item}>
 				<TreeItemLabel
 					class={sceneStore.selectedUuid === item.getId()
 						? '!bg-white/10 !text-accent-foreground'
