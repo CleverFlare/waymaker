@@ -1,4 +1,4 @@
-<script module>
+<script lang="ts" module>
 	import type { ItemInstance } from '@headless-tree/core';
 
 	export type ToggleIconType = 'chevron' | 'plus-minus';
@@ -6,6 +6,7 @@
 	export interface TreeContext {
 		indent: number;
 		tree: any;
+		state: any;
 		toggleIconType: ToggleIconType;
 		currentItem: ItemInstance<any> | undefined;
 	}
@@ -21,6 +22,7 @@
 	interface Props {
 		indent?: number;
 		tree?: any;
+		state?: any;
 		toggleIconType?: ToggleIconType;
 		class?: string;
 		children?: Snippet;
@@ -29,21 +31,23 @@
 	let {
 		indent = 20,
 		tree,
+		state: treeState,
 		class: className,
 		toggleIconType = 'chevron',
 		children
 	}: Props = $props();
 
-	// Reactive context object — TreeItem updates currentItem here
 	const ctx = $state<TreeContext>({
 		indent: 20,
 		tree: undefined,
+		state: undefined,
 		toggleIconType: 'chevron',
 		currentItem: undefined
 	});
 	$effect.pre(() => {
 		ctx.indent = indent;
 		ctx.tree = tree;
+		ctx.state = treeState;
 		ctx.toggleIconType = toggleIconType;
 	});
 	setContext(TREE_CTX, ctx);

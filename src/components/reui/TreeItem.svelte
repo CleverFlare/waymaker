@@ -23,11 +23,14 @@
 	});
 	setContext(TREE_CTX, itemCtx);
 
-	// Normalize headless-tree item props — captured once at init; ref/attrs are stable.
-	const { ref: registerItem, attrs: itemAttrs } = untrack(() =>
-		typeof item.getProps === 'function'
-			? normalizeHtProps(item.getProps())
-			: { ref: undefined, attrs: {} }
+	// ref is a stable DOM-registration callback — capture once.
+	const registerItem = untrack(() =>
+		typeof item.getProps === 'function' ? normalizeHtProps(item.getProps()).ref : undefined
+	);
+
+	// attrs include aria-expanded, aria-selected, etc. — must re-derive when state changes.
+	const itemAttrs = $derived(
+		typeof item.getProps === 'function' ? normalizeHtProps(item.getProps()).attrs : {}
 	);
 
 	// Convert camelCase event handlers from getDragHandleProps() passed as rest props

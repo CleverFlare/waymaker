@@ -4,9 +4,14 @@
 	import TreeItem from '@/components/reui/TreeItem.svelte';
 	import TreeItemLabel from '@/components/reui/TreeItemLabel.svelte';
 	import TreeDragLine from '@/components/reui/TreeDragLine.svelte';
-	import { syncDataLoaderFeature } from '@headless-tree/core';
+	import {
+		syncDataLoaderFeature,
+		hotkeysCoreFeature,
+		dragAndDropFeature,
+		createOnDropHandler
+	} from '@headless-tree/core';
 	import { useTree } from '@/hooks/useTree.svelte';
-	import { sceneStore, selectNode } from '@/store/sceneStore.svelte';
+	import { sceneStore, selectNode, reparentNodes, getObject } from '@/store/sceneStore.svelte';
 	import { SCENE_ROOT_ID } from '@/lib/scene';
 
 	const MESH_TYPES = new Set(['Mesh', 'SkinnedMesh']);
@@ -24,14 +29,32 @@
 		rootItemId: SCENE_ROOT_ID,
 		getItemName: (item) => item.getItemData().name,
 		isItemFolder: (item) => (item.getItemData().children?.length ?? 0) > 0,
+		reorderAreaPercentage: 0.2,
+		indent: 20,
 		dataLoader: {
 			getItem: (id) => treeData[id],
 			getChildren: (id) => treeData[id]?.children ?? []
 		},
-		features: [syncDataLoaderFeature],
+		features: [syncDataLoaderFeature, hotkeysCoreFeature, dragAndDropFeature],
 		initialState: {
-			expandedItems: [SCENE_ROOT_ID]
-		}
+			expandedItems: [SCENE_ROOT_ID],
+			dnd: null
+		},
+		canDrop: () => true,
+		onDrop: createOnDropHandler((item, newChildIds) => {
+			const parentId = item.getId();
+			const addedIds = newChildIds.filter(
+				(id) => !(treeData[parentId]?.children ?? []).includes(id)
+			);
+			reparentNodes(parentId, newChildIds);
+			const parentObject = getObject(parentId);
+			if (parentObject) {
+				addedIds.forEach((id) => {
+					const childObject = getObject(id);
+					if (childObject) parentObject.attach(childObject);
+				});
+			}
+		})
 	});
 
 	$effect.pre(() => {
@@ -57,12 +80,12 @@
 		Import a GLB or GLTF to see the scene graph
 	</p>
 {:else}
-	<Tree tree={ht.tree} indent={16} toggleIconType="chevron" class="p-2">
-		{#each ht.items as item (item.getId())}
+	<Tree tree={ht.tree} state={ht.state} indent={16} toggleIconType="chevron" class="p-2">
+		{#each ht.tree.getItems() as item (item.getId())}
 			{@const data = treeData[item.getId()]}
 			{@const isMesh = MESH_TYPES.has(data?.type ?? '')}
 			{@const isImage = IMAGE_TYPES.has(data?.type ?? '')}
-			<TreeItem {item}>
+			<TreeItem {item} {...item.getDragHandleProps()}>
 				<TreeItemLabel
 					class={sceneStore.selectedUuid === item.getId()
 						? '!bg-white/10 !text-accent-foreground'
