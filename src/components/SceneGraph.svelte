@@ -13,6 +13,7 @@
 	import { useTree } from '@/hooks/useTree.svelte';
 	import { sceneStore, selectNode, reparentNodes, getObject } from '@/store/sceneStore.svelte';
 	import { SCENE_ROOT_ID } from '@/lib/scene';
+	import { untrack } from 'svelte';
 
 	const MESH_TYPES = new Set(['Mesh', 'SkinnedMesh']);
 	const IMAGE_TYPES = new Set(['ImagePlane']);
@@ -23,7 +24,7 @@
 		children: string[];
 	}
 
-	let treeData: Record<string, TreeItemData> = {};
+	let treeData: Record<string, TreeItemData> = $state({});
 
 	const ht = useTree<TreeItemData>({
 		rootItemId: SCENE_ROOT_ID,
@@ -71,7 +72,10 @@
 				])
 			)
 		};
-		ht.tree.rebuildTree();
+		// untrack prevents rebuildTree's internal dataLoader reads (treeData[id])
+		// from creating a reactive dependency on treeData inside this effect,
+		// which would cause a write→read cycle and effect_update_depth_exceeded.
+		untrack(() => ht.tree.rebuildTree());
 	});
 </script>
 

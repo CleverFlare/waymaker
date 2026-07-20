@@ -68,16 +68,18 @@
 </script>
 
 {#if sceneStore.selectedUuid && object && mode}
-	<TransformControls
-		{object}
-		{mode}
-		space="world"
-		onmouseDown={() => {
-			gizmoInteracting.current = true;
-		}}
-		onmouseUp={() => {
-			gizmoInteracting.current = false;
-		}}
-		onchange={handleChange}
-	/>
+	{#key sceneStore.selectedUuid}
+		<TransformControls
+			{object}
+			{mode}
+			space="world"
+			onmouseDown={() => {
+				gizmoInteracting.current = true;
+			}}
+			onmouseUp={() => {
+				gizmoInteracting.current = false;
+			}}
+			onchange={handleChange}
+		/>
+	{/key}
 {/if}

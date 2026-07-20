@@ -145,5 +145,8 @@ export function reparentNodes(parentId: string, newChildIds: string[]) {
 export function updateNode(uuid: string, patch: Partial<SceneNode>) {
 	const node = sceneStore.nodes[uuid];
 	if (!node) return;
-	sceneStore.nodes = { ...sceneStore.nodes, [uuid]: { ...node, ...patch } };
+	// Mutate in-place so only per-property subscribers invalidate, not the
+	// entire nodes map. Replacing nodes wholesale fires SceneGraph's $effect.pre
+	// (tree rebuild) and every other nodes-map subscriber at 60fps during gizmo drag.
+	Object.assign(node, patch);
 }
