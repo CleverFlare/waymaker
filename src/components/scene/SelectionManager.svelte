@@ -14,7 +14,7 @@
 	import { gizmoInteracting } from '@/lib/gizmoInteracting';
 	import pivotPointPng from '@/assets/pivot-point.png?url';
 
-	const { scene, camera, canvas } = useThrelte();
+	const { scene, camera, canvas, dom } = useThrelte();
 	const raycaster = new Raycaster();
 	const { onPointerDown, wasDrag } = createDragGuard(5);
 
@@ -33,11 +33,15 @@
 			selectNode(hit ? hit.object.uuid : null);
 		};
 
-		canvas.addEventListener('pointerdown', onPointerDown);
-		canvas.addEventListener('click', handleClick);
+		// TransformControls registers on `dom` (the canvas wrapper div) and calls
+		// setPointerCapture on it, which redirects pointerup and the resulting
+		// click event to the div rather than the canvas. Listening on the same
+		// element ensures handleClick receives the click in all tool modes.
+		dom.addEventListener('pointerdown', onPointerDown);
+		dom.addEventListener('click', handleClick);
 		return () => {
-			canvas.removeEventListener('pointerdown', onPointerDown);
-			canvas.removeEventListener('click', handleClick);
+			dom.removeEventListener('pointerdown', onPointerDown);
+			dom.removeEventListener('click', handleClick);
 		};
 	});
 
