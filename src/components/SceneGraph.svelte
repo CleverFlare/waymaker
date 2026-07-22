@@ -77,6 +77,34 @@
 		// which would cause a write→read cycle and effect_update_depth_exceeded.
 		untrack(() => ht.tree.rebuildTree());
 	});
+
+	$effect(() => {
+		const uuid = sceneStore.selectedUuid;
+		if (!uuid) return;
+		untrack(() => {
+			const parentMap: Record<string, string> = {};
+			for (const [id, data] of Object.entries(treeData)) {
+				for (const childId of data.children) {
+					parentMap[childId] = id;
+				}
+			}
+			const ancestors: string[] = [];
+			let current = parentMap[uuid];
+			while (current && current !== SCENE_ROOT_ID) {
+				ancestors.push(current);
+				current = parentMap[current];
+			}
+			if (ancestors.length === 0) return;
+			const existing = new Set(ht.state.expandedItems ?? []);
+			const toAdd = ancestors.filter((id) => !existing.has(id));
+			if (toAdd.length > 0) {
+				for (const item of toAdd) {
+					ht.tree.getItemInstance(item)?.expand();
+				}
+			}
+			ht.tree.getItemInstance(uuid)?.scrollTo({ block: 'center', behavior: 'instant' });
+		});
+	});
 </script>
 
 {#if sceneStore.sceneRootChildren.length === 0}
