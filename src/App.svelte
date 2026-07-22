@@ -12,18 +12,24 @@
 	import ModelInstance from '@/components/scene/ModelInstance.svelte';
 	import ImageInstance from '@/components/scene/ImageInstance.svelte';
 	import { sceneStore, addImportedModel, addImportedImage } from '@/store/sceneStore.svelte';
+	import { Toaster } from '@/components/ui/sonner';
+	import { toast } from 'svelte-sonner';
 
 	// Absorbed from the dissolved useImportedFiles hook (Phase 4)
 	const IMAGE_EXT = /\.(png|jpe?g|webp)$/i;
+	const MODEL_EXT = /\.(glb|gltf)$/i;
 
 	$effect(() => {
 		return window.electronAPI.onImportFiles((files) => {
 			for (const { name, buffer } of files) {
-				const url = URL.createObjectURL(new Blob([buffer]));
 				if (IMAGE_EXT.test(name)) {
+					const url = URL.createObjectURL(new Blob([buffer]));
 					addImportedImage(url, name.replace(/\.[^.]+$/, ''));
-				} else {
+				} else if (MODEL_EXT.test(name)) {
+					const url = URL.createObjectURL(new Blob([buffer]));
 					addImportedModel(url);
+				} else {
+					toast.error(`"${name}" is not a supported format.`);
 				}
 			}
 		});
@@ -87,4 +93,5 @@
 		<PanelRouter />
 		<Toolbar />
 	</div>
+	<Toaster theme="dark" />
 </TooltipProvider>
