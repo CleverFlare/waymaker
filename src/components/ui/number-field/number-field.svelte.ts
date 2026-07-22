@@ -14,9 +14,9 @@ import {
 } from 'svelte-toolbelt';
 import { on } from 'svelte/events';
 import { Context, watch } from 'runed';
-import { createBitsAttrs, boolToEmptyStrOrUndef } from '$lib/internal/attrs.js';
-import { isBrowser } from '$lib/internal/is.js';
-import type { OnChangeFn, RefAttachment, WithRefOpts } from '$lib/internal/types.js';
+import { createBitsAttrs, boolToEmptyStrOrUndef } from '$bits/dist/internal/attrs.js';
+import { isBrowser } from '$bits/dist/internal/is.js';
+import type { OnChangeFn, RefAttachment, WithRefOpts } from '$bits/dist/internal/types.js';
 
 export const numberFieldAttrs = createBitsAttrs({
 	component: 'number-field',

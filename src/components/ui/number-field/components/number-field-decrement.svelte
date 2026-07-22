@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { boxWith, mergeProps } from 'svelte-toolbelt';
 	// import { createId } from "$lib/internal/create-id.js";
-	import { createId } from '@/lib/internal/create-id.js';
+	import { createId } from '$bits/dist/internal/create-id.js';
 	import { NumberFieldDecrementState } from '../number-field.svelte.js';
 	import type { NumberFieldDecrementProps } from '../types.js';
 

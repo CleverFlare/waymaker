@@ -1,10 +1,10 @@
-import type { OnChangeFn, WithChild, Without } from '@/lib/internal/types.js';
+import type { OnChangeFn, WithChild, Without } from '$bits/dist/internal/types.js';
 import type {
 	BitsPrimitiveButtonAttributes,
 	BitsPrimitiveDivAttributes,
 	BitsPrimitiveInputAttributes,
 	BitsPrimitiveSpanAttributes
-} from '@/lib/shared/attributes.js';
+} from '$bits/dist/shared/attributes.js';
 
 export type NumberFieldRootPropsWithoutHTML = WithChild<{
 	/**

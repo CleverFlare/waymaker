@@ -2,8 +2,8 @@
 	import { boxWith, mergeProps } from 'svelte-toolbelt';
 	// import { createId } from "$lib/internal/create-id.js";
 	// import Portal from "$lib/bits/utilities/portal/portal.svelte";
-	import { createId } from '@/lib/internal/create-id.js';
-	import Portal from '@/lib/bits/utilities/portal/portal.svelte';
+	import { createId } from '$bits/dist/internal/create-id.js';
+	import Portal from '$bits/dist/bits/utilities/portal/portal.svelte';
 	import { NumberFieldScrubAreaCursorState } from '../number-field.svelte.js';
 	import type { NumberFieldScrubAreaCursorProps } from '../types.js';
 

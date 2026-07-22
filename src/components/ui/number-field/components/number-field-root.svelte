@@ -2,8 +2,8 @@
 	import { boxWith, mergeProps } from 'svelte-toolbelt';
 	// import { noop } from "$lib/internal/noop.js";
 	// import { createId } from "$lib/internal/create-id.js";
-	import { noop } from '@/lib/internal/noop.js';
-	import { createId } from '@/lib/internal/create-id.js';
+	import { noop } from '$bits/dist/internal/noop.js';
+	import { createId } from '$bits/dist/internal/create-id.js';
 	import { NumberFieldRootState } from '../number-field.svelte.js';
 	import type { NumberFieldRootProps } from '../types.js';
 
