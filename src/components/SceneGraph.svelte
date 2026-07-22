@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { FolderOpenIcon, FolderIcon, BoxIcon, FileIcon, ImageIcon } from 'lucide-svelte';
-	import Tree from '@/components/reui/Tree.svelte';
-	import TreeItem from '@/components/reui/TreeItem.svelte';
-	import TreeItemLabel from '@/components/reui/TreeItemLabel.svelte';
-	import TreeDragLine from '@/components/reui/TreeDragLine.svelte';
+	import Tree from '@/components/tree/Tree.svelte';
+	import TreeItem from '@/components/tree/TreeItem.svelte';
+	import TreeItemLabel from '@/components/tree/TreeItemLabel.svelte';
+	import TreeDragLine from '@/components/tree/TreeDragLine.svelte';
 	import {
 		syncDataLoaderFeature,
 		hotkeysCoreFeature,
