@@ -4,7 +4,7 @@
   import type { SceneNode, Vec3 } from "@/store/sceneStore.svelte";
   import { centerPivot } from "@/lib/nodeTransform";
   import { Button } from "@/components/ui/button";
-  import ScrubNumberField from "@/components/ui/ScrubNumberField.svelte";
+  import ScrubNumberField from "./ui/ScrubNumberField.svelte";
   import Panel from "./ui/Panel.svelte";
   import PanelHeader from "./ui/PanelHeader.svelte";
   import PanelTitle from "./ui/PanelTitle.svelte";
