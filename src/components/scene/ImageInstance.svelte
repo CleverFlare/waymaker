@@ -18,11 +18,17 @@
 	interface Props {
 		url: string;
 		name: string;
+		onerror: () => void;
 	}
 
-	let { url, name }: Props = $props();
+	let { url, name, onerror }: Props = $props();
 
 	const texture = useTexture(untrack(() => url));
+	const textureError = texture.error;
+
+	$effect(() => {
+		if ($textureError) onerror();
+	});
 	const { camera } = useThrelte();
 
 	// Created once the texture resolves; disposed on cleanup.
@@ -32,8 +38,8 @@
 		const tex = $texture;
 		if (!tex) return;
 
-		const w = ((tex.image as Record<string, unknown>)?.width as number) || 1;
-		const h = ((tex.image as Record<string, unknown>)?.height as number) || 1;
+		const w = ((tex.image as unknown as Record<string, unknown>)?.width as number) || 1;
+		const h = ((tex.image as unknown as Record<string, unknown>)?.height as number) || 1;
 		const max = Math.max(w, h);
 		const geo = new THREE.PlaneGeometry(w / max, h / max);
 		const mat = new THREE.MeshBasicMaterial({
@@ -43,9 +49,10 @@
 			side: THREE.DoubleSide
 		});
 		const m = new THREE.Mesh(geo, mat);
-		m.name = name;
+		const displayName = name.replace(/\.[^.]+$/, '');
+		m.name = displayName;
 
-		addModel({ [m.uuid]: createImagePlaneNode(m.uuid, name) }, m.uuid);
+		addModel({ [m.uuid]: createImagePlaneNode(m.uuid, displayName) }, m.uuid);
 		registerObject(m.uuid, m);
 		mesh = m;
 

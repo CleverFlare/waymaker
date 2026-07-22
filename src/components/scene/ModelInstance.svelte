@@ -12,11 +12,17 @@
 
 	interface Props {
 		url: string;
+		onerror: () => void;
 	}
 
-	let { url }: Props = $props();
+	let { url, onerror }: Props = $props();
 
 	const gltf = useGltf(untrack(() => url));
+	const gltfError = gltf.error;
+
+	$effect(() => {
+		if ($gltfError) onerror();
+	});
 
 	$effect(() => {
 		const loaded = $gltf;

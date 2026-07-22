@@ -11,7 +11,13 @@
 	import TransformGizmo from '@/components/scene/TransformGizmo.svelte';
 	import ModelInstance from '@/components/scene/ModelInstance.svelte';
 	import ImageInstance from '@/components/scene/ImageInstance.svelte';
-	import { sceneStore, addImportedModel, addImportedImage } from '@/store/sceneStore.svelte';
+	import {
+		sceneStore,
+		addImportedModel,
+		addImportedImage,
+		removeImportedModel,
+		removeImportedImage
+	} from '@/store/sceneStore.svelte';
 	import { Toaster } from '@/components/ui/sonner';
 	import { toast } from 'svelte-sonner';
 
@@ -24,10 +30,10 @@
 			for (const { name, buffer } of files) {
 				if (IMAGE_EXT.test(name)) {
 					const url = URL.createObjectURL(new Blob([buffer]));
-					addImportedImage(url, name.replace(/\.[^.]+$/, ''));
+					addImportedImage(url, name);
 				} else if (MODEL_EXT.test(name)) {
 					const url = URL.createObjectURL(new Blob([buffer]));
-					addImportedModel(url);
+					addImportedModel(url, name);
 				} else {
 					toast.error(`"${name}" is not a supported format.`);
 				}
@@ -82,11 +88,24 @@
 				fadeDistance={100}
 			/>
 
-			{#each sceneStore.importedModels as { id, url } (id)}
-				<ModelInstance {url} />
+			{#each sceneStore.importedModels as { id, url, name } (id)}
+				<ModelInstance
+					{url}
+					onerror={() => {
+						removeImportedModel(id);
+						toast.error(`"${name}" could not be loaded — it may be corrupted.`);
+					}}
+				/>
 			{/each}
 			{#each sceneStore.importedImages as img (img.id)}
-				<ImageInstance url={img.url} name={img.name} />
+				<ImageInstance
+					url={img.url}
+					name={img.name}
+					onerror={() => {
+						removeImportedImage(img.id);
+						toast.error(`"${img.name}" could not be loaded — it may be corrupted.`);
+					}}
+				/>
 			{/each}
 		</Canvas>
 

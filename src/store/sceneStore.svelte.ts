@@ -8,6 +8,7 @@ export type Tool = 'select' | 'move' | 'rotate' | 'resize';
 export interface ImportedModel {
 	id: string;
 	url: string;
+	name: string;
 }
 
 export interface ImportedImage {
@@ -80,8 +81,8 @@ export function setActiveTool(tool: Tool) {
 	sceneStore.activeTool = tool;
 }
 
-export function addImportedModel(url: string) {
-	sceneStore.importedModels = [...sceneStore.importedModels, { id: crypto.randomUUID(), url }];
+export function addImportedModel(url: string, name: string) {
+	sceneStore.importedModels = [...sceneStore.importedModels, { id: crypto.randomUUID(), url, name }];
 }
 
 export function addImportedImage(url: string, name: string) {
@@ -89,6 +90,14 @@ export function addImportedImage(url: string, name: string) {
 		...sceneStore.importedImages,
 		{ id: crypto.randomUUID(), url, name }
 	];
+}
+
+export function removeImportedModel(id: string) {
+	sceneStore.importedModels = sceneStore.importedModels.filter((m) => m.id !== id);
+}
+
+export function removeImportedImage(id: string) {
+	sceneStore.importedImages = sceneStore.importedImages.filter((img) => img.id !== id);
 }
 
 export function addModel(newNodes: Record<string, SceneNode>, rootUuid: string) {
