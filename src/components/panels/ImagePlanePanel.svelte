@@ -5,13 +5,13 @@
   import { centerPivot } from "@/lib/nodeTransform";
   import { Button } from "@/components/ui/button";
   import ScrubNumberField from "@/components/ui/ScrubNumberField.svelte";
-  import Panel from "./Panel.svelte";
-  import PanelHeader from "./PanelHeader.svelte";
-  import PanelTitle from "./PanelTitle.svelte";
-  import PanelDescription from "./PanelDescription.svelte";
-  import PanelBody from "./PanelBody.svelte";
-  import PanelVec3 from "./PanelVec3.svelte";
-  import PanelRow from "./PanelRow.svelte";
+  import Panel from "./ui/Panel.svelte";
+  import PanelHeader from "./ui/PanelHeader.svelte";
+  import PanelTitle from "./ui/PanelTitle.svelte";
+  import PanelDescription from "./ui/PanelDescription.svelte";
+  import PanelBody from "./ui/PanelBody.svelte";
+  import PanelVec3 from "./ui/PanelVec3.svelte";
+  import PanelRow from "./ui/PanelRow.svelte";
 
   const AXES = ["X", "Y", "Z"] as const;
   const XY = ["X", "Y"] as const;
