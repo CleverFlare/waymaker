@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { MathUtils } from 'three';
 	import { applyTransform } from '@/store/sceneStore.svelte';
-	import type { SceneNode, Transform, Vec3 } from '@/store/sceneStore.svelte';
+	import type { SceneNode, Vec3 } from '@/store/sceneStore.svelte';
 	import { centerPivot } from '@/lib/nodeTransform';
 	import { Button } from '@/components/ui/button';
 	import ScrubNumberField from './ui/ScrubNumberField.svelte';
@@ -11,8 +11,8 @@
 	import PanelDescription from './ui/PanelDescription.svelte';
 	import PanelBody from './ui/PanelBody.svelte';
 	import PanelVec3 from './ui/PanelVec3.svelte';
-	import { historyManager, type Trackable } from '@/lib/history/history-manager.svelte';
-	import { TransformCommand, transformTarget } from '@/lib/history/commands/transform.svelte';
+	import { historyManager } from '@/lib/history/history-manager.svelte';
+	import { transformTarget } from '@/lib/history/commands/transform.svelte';
 
 	const AXES = ['X', 'Y', 'Z'] as const;
 	const POS_FORMAT: Intl.NumberFormatOptions = {

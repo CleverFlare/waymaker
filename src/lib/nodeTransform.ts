@@ -1,5 +1,8 @@
 import { Box3, Mesh, Vector3 } from 'three';
 import { getObject, updateNode } from '@/store/sceneStore.svelte';
+import type { Vec3 } from '@/store/sceneStore.svelte';
+import { historyManager } from '@/lib/history/history-manager.svelte';
+import { CenterPivotCommand } from '@/lib/history/commands/center-pivot.svelte';
 
 export function centerPivot(uuid: string): void {
 	const obj = getObject(uuid);
@@ -14,6 +17,7 @@ export function centerPivot(uuid: string): void {
 	box.getCenter(wCenter);
 
 	const localOffset = obj.worldToLocal(wCenter.clone());
+	const oldPosition: Vec3 = [obj.position.x, obj.position.y, obj.position.z];
 
 	for (const child of obj.children) {
 		child.position.sub(localOffset);
@@ -29,5 +33,8 @@ export function centerPivot(uuid: string): void {
 	obj.updateMatrix();
 	obj.updateMatrixWorld(true);
 
-	updateNode(uuid, { position: [obj.position.x, obj.position.y, obj.position.z] });
+	const newPosition: Vec3 = [obj.position.x, obj.position.y, obj.position.z];
+	updateNode(uuid, { position: newPosition });
+
+	historyManager.record(new CenterPivotCommand(uuid, localOffset, oldPosition, newPosition));
 }
