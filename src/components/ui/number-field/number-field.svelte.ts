@@ -211,6 +211,8 @@ interface NumberFieldRootStateOpts
 			format: Intl.NumberFormatOptions | undefined;
 			onValueChange: OnChangeFn<number | null>;
 			onValueCommitted: OnChangeFn<number | null>;
+			onScrubStart: () => void;
+			onScrubEnd: () => void;
 		}>,
 		WritableBoxedValues<{
 			value: number | null;
@@ -977,6 +979,12 @@ export class NumberFieldScrubAreaState {
 	#setScrubbing(value: boolean, event: PointerEvent) {
 		this.isScrubbing = value;
 		this.root.isScrubbing = value;
+
+		if (value) {
+			this.root.opts.onScrubStart.current();
+		} else {
+			this.root.opts.onScrubEnd.current();
+		}
 
 		if (!value || !this.cursorEl) return;
 

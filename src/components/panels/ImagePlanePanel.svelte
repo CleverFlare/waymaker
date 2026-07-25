@@ -41,7 +41,11 @@
 	function vec3NodeTarget(getVal: () => Vec3, apply: (v: Vec3) => void): Trackable<Vec3> {
 		return {
 			get: getVal,
-			createCommand: (before, after) => new Command(() => apply(before), () => apply(after)),
+			createCommand: (before, after) =>
+				new Command(
+					() => apply(before),
+					() => apply(after)
+				),
 			equals: (a, b) => a.every((v, i) => v === b[i])
 		};
 	}
@@ -114,11 +118,13 @@
 					onChange={(val) => handlePos(i as 0 | 1 | 2, val)}
 					step={0.1}
 					format={POS_FORMAT}
-					onFocus={() => {
+					onChangeStart={() => {
 						historyManager.beginTransaction(id);
 						historyManager.track(id, transformTarget(node));
 					}}
-					onBlur={() => historyManager.commitTransaction(id)}
+					onChangeEnd={() => {
+						historyManager.commitTransaction(id);
+					}}
 				/>
 			{/each}
 		</PanelVec3>
@@ -144,11 +150,13 @@
 						onChange={(val) => handleRot(i as 0 | 1 | 2, val)}
 						step={1}
 						format={ROT_FORMAT}
-						onFocus={() => {
+						onChangeStart={() => {
 							historyManager.beginTransaction(id);
 							historyManager.track(id, transformTarget(node));
 						}}
-						onBlur={() => historyManager.commitTransaction(id)}
+						onChangeEnd={() => {
+							historyManager.commitTransaction(id);
+						}}
 					/>
 				{/each}
 			</PanelVec3>
@@ -164,14 +172,17 @@
 						onChange={(val) => handleCameraRot(i as 0 | 1 | 2, val)}
 						step={1}
 						format={ROT_FORMAT}
-						onFocus={() => {
+						onChangeStart={() => {
 							historyManager.beginTransaction(id);
-							historyManager.track(id, vec3NodeTarget(
-								() => [...node.cameraRotation] as Vec3,
-								(v) => updateNode(node.uuid, { cameraRotation: v } as Partial<SceneNode>)
-							));
+							historyManager.track(
+								id,
+								vec3NodeTarget(
+									() => [...node.cameraRotation] as Vec3,
+									(v) => updateNode(node.uuid, { cameraRotation: v } as Partial<SceneNode>)
+								)
+							);
 						}}
-						onBlur={() => historyManager.commitTransaction(id)}
+						onChangeEnd={() => historyManager.commitTransaction(id)}
 					/>
 				{/each}
 			</PanelVec3>
@@ -198,11 +209,13 @@
 						onChange={(val) => handleScale(i as 0 | 1 | 2, val)}
 						step={0.01}
 						format={SCALE_FORMAT}
-						onFocus={() => {
+						onChangeStart={() => {
 							historyManager.beginTransaction(id);
 							historyManager.track(id, transformTarget(node));
 						}}
-						onBlur={() => historyManager.commitTransaction(id)}
+						onChangeEnd={() => {
+							historyManager.commitTransaction(id);
+						}}
 					/>
 				{/each}
 			</PanelVec3>
@@ -218,14 +231,17 @@
 						onChange={(val) => handleCameraScale(i as 0 | 1 | 2, val)}
 						step={0.001}
 						format={SCALE_FORMAT}
-						onFocus={() => {
+						onChangeStart={() => {
 							historyManager.beginTransaction(id);
-							historyManager.track(id, vec3NodeTarget(
-								() => [...node.cameraScale] as Vec3,
-								(v) => updateNode(node.uuid, { cameraScale: v } as Partial<SceneNode>)
-							));
+							historyManager.track(
+								id,
+								vec3NodeTarget(
+									() => [...node.cameraScale] as Vec3,
+									(v) => updateNode(node.uuid, { cameraScale: v } as Partial<SceneNode>)
+								)
+							);
 						}}
-						onBlur={() => historyManager.commitTransaction(id)}
+						onChangeEnd={() => historyManager.commitTransaction(id)}
 					/>
 				{/each}
 			</PanelVec3>

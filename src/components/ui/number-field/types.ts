@@ -25,6 +25,16 @@ export type NumberFieldRootPropsWithoutHTML = WithChild<{
 	onValueCommitted?: OnChangeFn<number | null>;
 
 	/**
+	 * A callback invoked when a scrub interaction begins (pointer down on the scrub area).
+	 */
+	onScrubStart?: () => void;
+
+	/**
+	 * A callback invoked when a scrub interaction ends (pointer release after scrubbing).
+	 */
+	onScrubEnd?: () => void;
+
+	/**
 	 * The minimum value of the field.
 	 */
 	min?: number;

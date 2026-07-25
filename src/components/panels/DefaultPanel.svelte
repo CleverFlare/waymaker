@@ -69,11 +69,11 @@
 					onChange={(val) => handlePos(i as 0 | 1 | 2, val)}
 					step={0.1}
 					format={POS_FORMAT}
-					onFocus={() => {
+					onChangeStart={() => {
 						historyManager.beginTransaction(id);
 						historyManager.track(id, transformTarget(node));
 					}}
-					onBlur={() => {
+					onChangeEnd={() => {
 						historyManager.commitTransaction(id);
 					}}
 				/>
@@ -89,11 +89,11 @@
 					onChange={(val) => handleRot(i as 0 | 1 | 2, val)}
 					step={1}
 					format={ROT_FORMAT}
-					onFocus={() => {
+					onChangeStart={() => {
 						historyManager.beginTransaction(id);
 						historyManager.track(id, transformTarget(node));
 					}}
-					onBlur={() => {
+					onChangeEnd={() => {
 						historyManager.commitTransaction(id);
 					}}
 				/>
@@ -109,11 +109,11 @@
 					onChange={(val) => handleScale(i as 0 | 1 | 2, val)}
 					step={0.01}
 					format={SCALE_FORMAT}
-					onFocus={() => {
+					onChangeStart={() => {
 						historyManager.beginTransaction(id);
 						historyManager.track(id, transformTarget(node));
 					}}
-					onBlur={() => {
+					onChangeEnd={() => {
 						historyManager.commitTransaction(id);
 					}}
 				/>
