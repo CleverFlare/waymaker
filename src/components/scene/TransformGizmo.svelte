@@ -5,6 +5,8 @@
 	import { sceneStore, getObject, updateNode } from '@/store/sceneStore.svelte';
 	import type { ImagePlaneNode, SceneNode, Vec3 } from '@/store/sceneStore.svelte';
 	import { gizmoInteracting } from '@/lib/gizmoInteracting';
+	import { historyManager } from '@/lib/history/history-manager.svelte';
+	import { transformTarget } from '@/lib/history/commands/transform.svelte';
 
 	const TOOL_TO_MODE = {
 		move: 'translate',
@@ -44,6 +46,8 @@
 		return [object!.scale.x / factor, object!.scale.y / factor, 1];
 	};
 
+	let gizmoTxId: string | null = null;
+
 	// Replaces the eventBus.emit calls — write to store directly for live panel
 	// updates and so scene components (billboard/sizeAttenuation) pick up changes
 	// each frame via their useTask reads.
@@ -75,9 +79,18 @@
 			space="world"
 			onmouseDown={() => {
 				gizmoInteracting.current = true;
+				if (node && sceneStore.selectedUuid) {
+					gizmoTxId = `gizmo[${sceneStore.selectedUuid}]`;
+					historyManager.beginTransaction(gizmoTxId);
+					historyManager.track(gizmoTxId, transformTarget(node));
+				}
 			}}
 			onmouseUp={() => {
 				gizmoInteracting.current = false;
+				if (gizmoTxId) {
+					historyManager.commitTransaction(gizmoTxId);
+					gizmoTxId = null;
+				}
 			}}
 			onchange={handleChange}
 		/>

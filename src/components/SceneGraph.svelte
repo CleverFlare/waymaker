@@ -13,6 +13,8 @@
 	import { useTree } from '@/hooks/useTree.svelte';
 	import { sceneStore, selectNode, reparentNodes, getObject } from '@/store/sceneStore.svelte';
 	import { SCENE_ROOT_ID } from '@/lib/scene';
+	import { historyManager, type Trackable } from '@/lib/history/history-manager.svelte';
+	import { ReparentCommand } from '@/lib/history/commands/reparent.svelte';
 	import { untrack } from 'svelte';
 
 	const MESH_TYPES = new Set(['Mesh', 'SkinnedMesh']);
@@ -25,6 +27,19 @@
 	}
 
 	let treeData: Record<string, TreeItemData> = $state({});
+
+	function reparentTarget(parentId: string): Trackable<string[]> {
+		return {
+			get: () =>
+				parentId === SCENE_ROOT_ID
+					? [...sceneStore.sceneRootChildren]
+					: [...(sceneStore.nodes[parentId]?.children ?? [])],
+			createCommand: (before, after) => new ReparentCommand(parentId, before, after),
+			equals: (a, b) => a.length === b.length && a.every((v, i) => v === b[i])
+		};
+	}
+
+	let reparentTxId: string | null = null;
 
 	const ht = useTree<TreeItemData>({
 		rootItemId: SCENE_ROOT_ID,
@@ -47,6 +62,19 @@
 			const addedIds = newChildIds.filter(
 				(id) => !(treeData[parentId]?.children ?? []).includes(id)
 			);
+
+			let txId = reparentTxId;
+			if (!txId) {
+				txId = crypto.randomUUID();
+				reparentTxId = txId;
+				historyManager.beginTransaction(txId);
+				setTimeout(() => {
+					reparentTxId = null;
+					historyManager.commitTransaction(txId);
+				}, 0);
+			}
+			historyManager.track(txId, reparentTarget(parentId));
+
 			reparentNodes(parentId, newChildIds);
 			const parentObject = getObject(parentId);
 			if (parentObject) {

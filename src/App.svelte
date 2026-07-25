@@ -20,10 +20,14 @@
 	} from '@/store/sceneStore.svelte';
 	import { Toaster } from '@/components/ui/sonner';
 	import { toast } from 'svelte-sonner';
+	import { historyManager } from '@/lib/history/history-manager.svelte';
 
 	// Absorbed from the dissolved useImportedFiles hook (Phase 4)
 	const IMAGE_EXT = /\.(png|jpe?g|webp)$/i;
 	const MODEL_EXT = /\.(glb|gltf)$/i;
+
+	$effect(() => window.electronAPI.onUndo(() => historyManager.undo()));
+	$effect(() => window.electronAPI.onRedo(() => historyManager.redo()));
 
 	$effect(() => {
 		return window.electronAPI.onImportFiles((files) => {

@@ -17,14 +17,17 @@ export interface ImportedImage {
 	name: string;
 }
 
-export interface BaseNode {
+export type Transform = {
+	position: Vec3;
+	rotation: Vec3;
+	scale: Vec3;
+};
+
+export interface BaseNode extends Transform {
 	uuid: string;
 	name: string;
 	type: string;
 	children: string[];
-	position: Vec3;
-	rotation: Vec3;
-	scale: Vec3;
 }
 
 export interface ImagePlaneNode extends BaseNode {
@@ -82,7 +85,10 @@ export function setActiveTool(tool: Tool) {
 }
 
 export function addImportedModel(url: string, name: string) {
-	sceneStore.importedModels = [...sceneStore.importedModels, { id: crypto.randomUUID(), url, name }];
+	sceneStore.importedModels = [
+		...sceneStore.importedModels,
+		{ id: crypto.randomUUID(), url, name }
+	];
 }
 
 export function addImportedImage(url: string, name: string) {
@@ -158,4 +164,17 @@ export function updateNode(uuid: string, patch: Partial<SceneNode>) {
 	// entire nodes map. Replacing nodes wholesale fires SceneGraph's $effect.pre
 	// (tree rebuild) and every other nodes-map subscriber at 60fps during gizmo drag.
 	Object.assign(node, patch);
+}
+
+export function applyTransform(
+	uuid: string,
+	patch: Partial<Pick<BaseNode, 'position' | 'rotation' | 'scale'>>
+) {
+	const obj = objectRefs[uuid];
+	if (obj) {
+		if (patch.position) obj.position.set(...patch.position);
+		if (patch.rotation) obj.rotation.set(...patch.rotation);
+		if (patch.scale) obj.scale.set(...patch.scale);
+	}
+	updateNode(uuid, patch);
 }

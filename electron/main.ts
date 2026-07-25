@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, Menu, MenuItem } from 'electron';
+import { app, BrowserWindow, dialog, Menu } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import fs from 'node:fs/promises';
@@ -31,46 +31,96 @@ function createWindow() {
 	}
 }
 
-function addImportMenuItem() {
-	const menu = Menu.getApplicationMenu();
-	if (!menu) return;
-	const fileMenu = menu.items.find((i) => i.label === 'File');
-	if (!fileMenu?.submenu) return;
+function buildApplicationMenu() {
+	const isMac = process.platform === 'darwin';
 
-	fileMenu.submenu.insert(0, new MenuItem({ type: 'separator' }));
-	fileMenu.submenu.insert(
-		0,
-		new MenuItem({
-			label: 'Import…',
-			accelerator: 'CmdOrCtrl+I',
-			click: async () => {
-				if (!win) return;
-				const { canceled, filePaths } = await dialog.showOpenDialog(win, {
-					properties: ['openFile', 'multiSelections'],
-					filters: [
-						{ name: 'All Assets', extensions: ['glb', 'gltf', 'png', 'jpg', 'jpeg', 'webp'] },
-						{ name: '3D Models', extensions: ['glb', 'gltf'] },
-						{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }
-					]
-				});
-				if (!canceled && filePaths.length > 0) {
-					const files = await Promise.all(
-						filePaths.map(async (p) => ({
-							name: path.basename(p),
-							buffer: (await fs.readFile(p)).buffer as ArrayBuffer
-						}))
-					);
-					win.webContents.send('import-files', files);
-				}
-			}
-		})
-	);
-	Menu.setApplicationMenu(menu);
+	const template: Electron.MenuItemConstructorOptions[] = [
+		...(isMac ? [{ role: 'appMenu' as const }] : []),
+		{
+			label: 'File',
+			submenu: [
+				{
+					label: 'Import…',
+					accelerator: 'CmdOrCtrl+I',
+					click: async () => {
+						if (!win) return;
+						const { canceled, filePaths } = await dialog.showOpenDialog(win, {
+							properties: ['openFile', 'multiSelections'],
+							filters: [
+								{
+									name: 'All Assets',
+									extensions: ['glb', 'gltf', 'png', 'jpg', 'jpeg', 'webp']
+								},
+								{ name: '3D Models', extensions: ['glb', 'gltf'] },
+								{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp'] }
+							]
+						});
+						if (!canceled && filePaths.length > 0) {
+							const files = await Promise.all(
+								filePaths.map(async (p) => ({
+									name: path.basename(p),
+									buffer: (await fs.readFile(p)).buffer as ArrayBuffer
+								}))
+							);
+							win!.webContents.send('import-files', files);
+						}
+					}
+				},
+				{ type: 'separator' },
+				isMac ? { role: 'close' as const } : { role: 'quit' as const }
+			]
+		},
+		{
+			label: 'Edit',
+			submenu: [
+				{
+					label: 'Undo',
+					accelerator: 'CmdOrCtrl+Z',
+					click: () => win?.webContents.send('undo')
+				},
+				{
+					label: 'Redo',
+					accelerator: 'CmdOrCtrl+Shift+Z',
+					click: () => win?.webContents.send('redo')
+				},
+				{ type: 'separator' },
+				{ role: 'cut' },
+				{ role: 'copy' },
+				{ role: 'paste' },
+				{ role: 'selectAll' }
+			]
+		},
+		{
+			label: 'View',
+			submenu: [
+				{ role: 'reload' },
+				{ role: 'forceReload' },
+				{ role: 'toggleDevTools' },
+				{ type: 'separator' },
+				{ role: 'resetZoom' },
+				{ role: 'zoomIn' },
+				{ role: 'zoomOut' },
+				{ type: 'separator' },
+				{ role: 'togglefullscreen' }
+			]
+		},
+		{
+			label: 'Window',
+			submenu: [
+				{ role: 'minimize' },
+				...(isMac
+					? [{ role: 'zoom' as const }, { type: 'separator' as const }, { role: 'front' as const }]
+					: [{ role: 'close' as const }])
+			]
+		}
+	];
+
+	Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
 app.whenReady().then(() => {
 	createWindow();
-	addImportMenuItem();
+	buildApplicationMenu();
 });
 
 app.on('window-all-closed', () => {

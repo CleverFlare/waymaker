@@ -5,12 +5,13 @@
 		label: string;
 		value: number;
 		onChange: (value: number) => void;
-		onCommit?: () => void;
+		onBlur?: () => void;
+		onFocus?: () => void;
 		step?: number;
 		format?: Intl.NumberFormatOptions;
 	}
 
-	let { label, value, onChange, onCommit, step = 0.1, format }: Props = $props();
+	let { label, value, onChange, onBlur, onFocus, step = 0.1, format }: Props = $props();
 </script>
 
 <NumberField.Root
@@ -18,7 +19,6 @@
 	onValueChange={(val) => {
 		if (val !== null) onChange(val);
 	}}
-	onValueCommitted={() => onCommit?.()}
 	{step}
 	{format}
 	class="flex items-center gap-1.5"
@@ -30,6 +30,8 @@
 		{label}
 	</NumberField.ScrubArea>
 	<NumberField.Input
+		onblur={() => onBlur?.()}
+		onfocus={() => onFocus?.()}
 		class="min-w-0 flex-1 rounded border border-transparent bg-white/10 px-1.5 py-0.5 font-mono text-[11px] text-foreground tabular-nums focus:border-ring focus:bg-background focus:outline-none"
 	/>
 </NumberField.Root>
